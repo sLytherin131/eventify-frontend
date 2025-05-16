@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.*
 import com.example.ui.ui.theme.EventifyTheme
 
 class MainActivity : ComponentActivity() {
@@ -15,7 +16,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EventifyTheme {
-                LoginScreen(viewModel = loginViewModel)
+                val loginSuccess by loginViewModel.loginSuccess.collectAsState()
+
+                if (loginSuccess) {
+                    HomePageScreen()
+                } else {
+                    LoginScreen(viewModel = loginViewModel)
+                }
             }
         }
     }

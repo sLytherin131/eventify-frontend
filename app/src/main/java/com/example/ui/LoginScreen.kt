@@ -24,6 +24,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 // --- Data & API ---
 
@@ -45,6 +47,10 @@ class LoginViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var loginResult by mutableStateOf<String?>(null)
 
+    // Tambahkan StateFlow untuk status login
+    private val _loginSuccess = MutableStateFlow(false)
+    val loginSuccess: StateFlow<Boolean> get() = _loginSuccess
+
     private val retrofit = Retrofit.Builder()
         .baseUrl("http://10.0.2.2:8082")
         .addConverterFactory(GsonConverterFactory.create())
@@ -55,6 +61,7 @@ class LoginViewModel : ViewModel() {
     fun login() {
         if (whatsappNumber.isBlank() || password.isBlank()) {
             loginResult = "Please enter WhatsApp number and password"
+            _loginSuccess.value = false  // login gagal
             return
         }
 
@@ -62,14 +69,17 @@ class LoginViewModel : ViewModel() {
             isLoading = true
             try {
                 val response = apiService.login(LoginRequest(whatsappNumber, password))
-                loginResult = if (response.isSuccessful) {
-                    response.body()?.string() ?: "Login successful (no content)"
+                if (response.isSuccessful) {
+                    loginResult = "Login successful"
+                    _loginSuccess.value = true   // login sukses
                 } else {
                     val errorMsg = response.errorBody()?.string()
-                    "Login failed: ${errorMsg ?: "Unknown error"}"
+                    loginResult = "Login failed: ${errorMsg ?: "Unknown error"}"
+                    _loginSuccess.value = false
                 }
             } catch (e: Exception) {
                 loginResult = "Login failed: ${e.message}"
+                _loginSuccess.value = false
             } finally {
                 isLoading = false
             }
