@@ -3,8 +3,6 @@ package com.example.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -15,9 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun HomePageScreen() {
+fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF3D4148)
     val lightCream = Color(0xFFEEEECF)
@@ -32,6 +31,8 @@ fun HomePageScreen() {
         Icons.Default.Person
     )
     var selectedIndex by remember { mutableStateOf(0) }
+
+    var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         backgroundColor = backgroundColor,
@@ -53,13 +54,14 @@ fun HomePageScreen() {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO: Navigate to calendar screen
+                    // TODO: Ganti dengan navigasi ke halaman kalender jika ada
+                    println("Navigasi ke halaman kalender") // Sementara print log
                 },
                 backgroundColor = navBarColor,
                 contentColor = lightCream,
                 modifier = Modifier.padding(bottom = 56.dp, end = 16.dp)
             ) {
-                Icon(Icons.Default.DateRange, contentDescription = "Calendar")
+                Icon(Icons.Default.CalendarToday, contentDescription = "Calendar")
             }
         },
         bottomBar = {
@@ -77,10 +79,7 @@ fun HomePageScreen() {
                             )
                         },
                         selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                            // TODO: Navigate to respective screen
-                        },
+                        onClick = { selectedIndex = index },
                         alwaysShowLabel = false
                     )
                 }
@@ -100,32 +99,70 @@ fun HomePageScreen() {
                 backgroundColor = cardColor,
                 shape = RoundedCornerShape(12.dp),
                 elevation = 8.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = "Task-list Personal",
-                        color = lightCream,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(16.dp)
-                    )
-                    IconButton(
-                        onClick = {
-                            // TODO: Tambah task personal
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Task", tint = lightCream)
+                        Text(
+                            text = "Task-list Personal",
+                            color = lightCream,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { showDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = lightCream)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (taskViewModel.tasks.isEmpty()) {
+                        Text("No personal tasks yet.", color = lightCream)
+                    } else {
+                        taskViewModel.tasks.forEach { task ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = task.isDone,
+                                    onCheckedChange = { taskViewModel.toggleDone(task.id) },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = lightCream,
+                                        uncheckedColor = lightCream
+                                    )
+                                )
+                                Text(
+                                    text = task.description,
+                                    color = lightCream,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 8.dp)
+                                )
+                                IconButton(onClick = { taskViewModel.deleteTask(task.id) }) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = lightCream
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    if (showDialog) {
+        AddPersonalTaskDialog(
+            onDismiss = { showDialog = false },
+            onAddTask = { desc, type ->
+                taskViewModel.addTask(desc, type)
+                showDialog = false
+            }
+        )
     }
 }
