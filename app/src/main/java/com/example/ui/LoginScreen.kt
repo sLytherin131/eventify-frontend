@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 // --- Data & API ---
 
 data class LoginRequest(
-    val whatsappNumber: String,
+    val identifier: String,
     val password: String
 )
 
@@ -42,12 +42,11 @@ interface ApiService {
 // --- ViewModel ---
 
 class LoginViewModel : ViewModel() {
-    var whatsappNumber by mutableStateOf("")
+    var identifier by mutableStateOf("")
     var password by mutableStateOf("")
     var isLoading by mutableStateOf(false)
     var loginResult by mutableStateOf<String?>(null)
 
-    // Tambahkan StateFlow untuk status login
     private val _loginSuccess = MutableStateFlow(false)
     val loginSuccess: StateFlow<Boolean> get() = _loginSuccess
 
@@ -59,19 +58,19 @@ class LoginViewModel : ViewModel() {
     private val apiService = retrofit.create(ApiService::class.java)
 
     fun login() {
-        if (whatsappNumber.isBlank() || password.isBlank()) {
-            loginResult = "Please enter WhatsApp number and password"
-            _loginSuccess.value = false  // login gagal
+        if (identifier.isBlank() || password.isBlank()) {
+            loginResult = "Please enter email/WhatsApp number and password"
+            _loginSuccess.value = false
             return
         }
 
         viewModelScope.launch {
             isLoading = true
             try {
-                val response = apiService.login(LoginRequest(whatsappNumber, password))
+                val response = apiService.login(LoginRequest(identifier, password))
                 if (response.isSuccessful) {
                     loginResult = "Login successful"
-                    _loginSuccess.value = true   // login sukses
+                    _loginSuccess.value = true
                 } else {
                     val errorMsg = response.errorBody()?.string()
                     loginResult = "Login failed: ${errorMsg ?: "Unknown error"}"
@@ -139,11 +138,11 @@ fun LoginScreen(viewModel: LoginViewModel) {
                         Spacer(modifier = Modifier.height(24.dp))
 
                         OutlinedTextField(
-                            value = viewModel.whatsappNumber,
-                            onValueChange = { viewModel.whatsappNumber = it },
-                            label = { Text("WhatsApp Number", color = textColor) },
+                            value = viewModel.identifier,
+                            onValueChange = { viewModel.identifier = it },
+                            label = { Text("Email / WhatsApp Number", color = textColor) },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = textColor,
                                 unfocusedTextColor = textColor,
