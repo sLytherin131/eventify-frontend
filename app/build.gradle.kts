@@ -54,6 +54,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.6.6")
     implementation("androidx.compose.material:material-icons-extended:1.6.6")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.navigation:navigation-compose:2.7.5")
 
     // Lifecycle dan ViewModel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -62,8 +63,16 @@ dependencies {
     // Activity Compose
     implementation("androidx.activity:activity-compose:1.8.2")
 
+    implementation("io.ktor:ktor-client-core:2.3.4")
+    implementation("io.ktor:ktor-client-cio:2.3.4") // atau engine yang kamu pakai
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
+
+
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
 
     // Retrofit + Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

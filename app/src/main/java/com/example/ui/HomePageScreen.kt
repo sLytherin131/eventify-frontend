@@ -1,5 +1,6 @@
 package com.example.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -9,14 +10,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.app.R
 
 @Composable
-fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
+fun HomePageScreen(
+    navController: NavController,
+    jwtToken: String,
+    taskViewModel: TaskViewModel = viewModel(factory = TaskViewModelFactory(jwtToken))
+) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF3D4148)
     val lightCream = Color(0xFFEEEECF)
@@ -31,7 +39,6 @@ fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
         Icons.Default.Person
     )
     var selectedIndex by remember { mutableStateOf(0) }
-
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -41,25 +48,29 @@ fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
                 backgroundColor = navBarColor,
                 elevation = 4.dp
             ) {
-                Text(
-                    text = "Eventify",
-                    color = lightCream,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Light
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 1.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.eventifylogo),
+                        contentDescription = "Eventify Logo",
+                        modifier = Modifier.size(150.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO: Ganti dengan navigasi ke halaman kalender jika ada
-                    println("Navigasi ke halaman kalender") // Sementara print log
+                    navController.navigate("calendar")
                 },
                 backgroundColor = navBarColor,
                 contentColor = lightCream,
-                modifier = Modifier.padding(bottom = 56.dp, end = 16.dp)
+                modifier = Modifier.padding(bottom = 20.dp, end = 16.dp)
             ) {
                 Icon(Icons.Default.CalendarToday, contentDescription = "Calendar")
             }
@@ -79,7 +90,13 @@ fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
                             )
                         },
                         selected = selectedIndex == index,
-                        onClick = { selectedIndex = index },
+                        onClick = {
+                            selectedIndex = index
+                            when (index) {
+                                1 -> navController.navigate("list_event")
+                                4 -> navController.navigate("personal_admin") // tambahkan ini// tambah navigasi lain jika perlu
+                            }
+                        },
                         alwaysShowLabel = false
                     )
                 }
@@ -118,6 +135,7 @@ fun HomePageScreen(taskViewModel: TaskViewModel = viewModel()) {
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
+
                     if (taskViewModel.tasks.isEmpty()) {
                         Text("No personal tasks yet.", color = lightCream)
                     } else {
