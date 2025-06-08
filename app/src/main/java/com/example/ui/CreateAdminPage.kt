@@ -1,5 +1,6 @@
 package com.example.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,9 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.app.R
 
 @Composable
 fun CreateAdminPage(navController: NavController) {
@@ -25,11 +28,13 @@ fun CreateAdminPage(navController: NavController) {
                 .align(Alignment.Center)
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Eventify",
-                color = Color(0xFFEEEECF),
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            // Ganti teks dengan logo
+            Image(
+                painter = painterResource(id = R.drawable.eventifylogo),
+                contentDescription = "Eventify Logo",
+                modifier = Modifier
+                    .size(100.dp)
+                    .align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -61,8 +66,6 @@ fun CreateAdminPage(navController: NavController) {
                     unfocusedLabelColor = Color.White,
                     cursorColor = Color.White
                 )
-
-
 
                 var name by remember { mutableStateOf("") }
                 var contact by remember { mutableStateOf("") }

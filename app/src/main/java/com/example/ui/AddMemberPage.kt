@@ -1,5 +1,6 @@
 package com.example.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,11 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,11 +33,13 @@ fun AddMemberPage(navController: NavController) {
                 .align(Alignment.TopCenter)
                 .padding(top = 32.dp)
         ) {
-            Text(
-                text = "Eventify",
-                fontSize = 32.sp,
-                color = Color(0xFFEEEECF),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            // Ganti Text "Eventify" dengan Logo
+            Image(
+                painter = painterResource(id = R.drawable.eventifylogo),
+                contentDescription = "Eventify Logo",
+                modifier = Modifier
+                    .size(100.dp)
+                    .align(Alignment.CenterHorizontally)
             )
 
             val whiteTextFieldColors = TextFieldDefaults.outlinedTextFieldColors(
@@ -46,7 +51,6 @@ fun AddMemberPage(navController: NavController) {
                 unfocusedLabelColor = Color.White,
                 cursorColor = Color.White
             )
-
 
             Spacer(modifier = Modifier.height(16.dp))
 

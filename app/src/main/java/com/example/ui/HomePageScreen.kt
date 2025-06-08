@@ -94,7 +94,8 @@ fun HomePageScreen(
                             selectedIndex = index
                             when (index) {
                                 1 -> navController.navigate("list_event")
-                                4 -> navController.navigate("personal_admin") // tambahkan ini// tambah navigasi lain jika perlu
+                                2 -> navController.navigate("create_event") // 🆕 tombol Add diarahkan ke "create_event"
+                                4 -> navController.navigate("personal_admin")
                             }
                         },
                         alwaysShowLabel = false

@@ -94,6 +94,10 @@ class MainActivity : ComponentActivity() {
                         AddMemberPage(navController = navController)
                     }
 
+                    composable("create_event") {
+                        CreateEventScreen(navController)
+                    }
+
                 }
             }
         }
