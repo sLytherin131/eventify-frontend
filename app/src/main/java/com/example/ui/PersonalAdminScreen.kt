@@ -3,15 +3,20 @@ package com.example.ui
 import android.app.Application
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,8 +33,6 @@ import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 
 /* === Data Class === */
 data class AdminRequest(
@@ -148,16 +151,16 @@ fun PersonalAdminScreen(
         viewModel.fetchAdminData()
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color(0xFFBFD6DB))
     ) {
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(bottom = 64.dp)
-                .fillMaxWidth(0.9f)
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp)
                 .background(Color(0xFF213B54), shape = RoundedCornerShape(16.dp))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -168,7 +171,6 @@ fun PersonalAdminScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Change Information", color = Color.White)
-
             Spacer(modifier = Modifier.height(8.dp))
 
             val fields = listOf<Triple<String, String, (String) -> Unit>>(
@@ -208,9 +210,7 @@ fun PersonalAdminScreen(
 
             Button(
                 onClick = { viewModel.updateAdminData() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = buttonColor,
                 shape = RoundedCornerShape(50)
             ) {
@@ -224,9 +224,7 @@ fun PersonalAdminScreen(
                     viewModel.logout(context)
                     onLogout()
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF9B2C40),
                     contentColor = Color.White
@@ -240,9 +238,7 @@ fun PersonalAdminScreen(
 
             Button(
                 onClick = { navController.navigate("create_admin") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = buttonColor,
                 shape = RoundedCornerShape(50)
             ) {
@@ -252,10 +248,8 @@ fun PersonalAdminScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { navController.navigate("add_member")},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                onClick = { navController.navigate("add_member") },
+                modifier = Modifier.fillMaxWidth(),
                 colors = buttonColor,
                 shape = RoundedCornerShape(50)
             ) {
@@ -263,7 +257,7 @@ fun PersonalAdminScreen(
             }
         }
 
-        BottomNavigationBar(navController, modifier = Modifier.align(Alignment.BottomCenter))
+        BottomNavigationBar(navController = navController)
     }
 }
 
@@ -272,7 +266,7 @@ fun PersonalAdminScreen(
 fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modifier) {
     val navBarColor = Color(0xFF243447)
     val lightCream = Color(0xFFEEEECF)
-    var selectedIndex by remember { mutableStateOf(4) } // default ke halaman personal
+    var selectedIndex by remember { mutableStateOf(4) }
 
     val icons = listOf(
         Icons.Default.Home,
@@ -284,32 +278,50 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
     val destinations = listOf(
         "home",
         "list_event",
-        "add",
-        "chart",
+        "create_event",
+        "calendar",
         "personal_admin"
     )
 
-    BottomNavigation(
-        modifier = modifier,
-        backgroundColor = navBarColor,
-        contentColor = lightCream
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp)
+            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .background(color = navBarColor),
+        contentAlignment = Alignment.Center
     ) {
-        icons.forEachIndexed { index, icon ->
-            BottomNavigationItem(
-                icon = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icons.forEachIndexed { index, icon ->
+                val isSelected = selectedIndex == index
+                val backgroundShape = if (index == 2) CircleShape else RoundedCornerShape(12.dp)
+                val backgroundColor = if (isSelected) Color.White else Color.Transparent
+                val iconTint = if (isSelected) navBarColor else lightCream
+
+                Box(
+                    modifier = Modifier
+                        .size(if (index == 2) 56.dp else 48.dp)
+                        .clip(backgroundShape)
+                        .background(color = backgroundColor)
+                        .clickable {
+                            selectedIndex = index
+                            navController.navigate(destinations[index])
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (selectedIndex == index) Color.LightGray else lightCream
+                        tint = iconTint
                     )
-                },
-                selected = selectedIndex == index,
-                onClick = {
-                    selectedIndex = index
-                    navController.navigate(destinations[index])
-                },
-                alwaysShowLabel = false
-            )
+                }
+            }
         }
     }
 }

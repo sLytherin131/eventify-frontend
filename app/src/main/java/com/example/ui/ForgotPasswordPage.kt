@@ -12,7 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.app.R // Ganti sesuai dengan nama package kamu
+import com.example.app.R // Ganti sesuai nama package kamu
 
 @Composable
 fun ForgotPasswordPage(navController: NavController) {
@@ -36,7 +36,7 @@ fun ForgotPasswordPage(navController: NavController) {
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                // ✅ Tambahkan logo Eventify di atas teks Eventify
+                // Logo Eventify
                 Image(
                     painter = painterResource(id = R.drawable.eventifylogo),
                     contentDescription = "Eventify Logo",
@@ -87,10 +87,15 @@ fun ForgotPasswordPage(navController: NavController) {
 
                         Button(
                             onClick = { /* TODO: Send code action */ },
+                            modifier = Modifier.width(130.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             shape = RoundedCornerShape(20.dp)
                         ) {
-                            Text("Send Code", color = textColor)
+                            Text(
+                                "Send Code",
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge // ✅ disamakan
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -133,23 +138,35 @@ fun ForgotPasswordPage(navController: NavController) {
 
                         Button(
                             onClick = { /* TODO: Reset password action */ },
+                            modifier = Modifier.width(130.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
                             shape = RoundedCornerShape(20.dp)
                         ) {
-                            Text("Reset", color = textColor)
+                            Text(
+                                "Reset",
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge // ✅ disamakan
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = { navController.navigate("login") },
+                Button(onClick = { navController.navigate("login") },
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(130.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = cardColor),
                     shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("Login", color = textColor)
+                    Text(
+                        "Login",
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyLarge // ✅ disamakan
+                    )
                 }
+
             }
         }
     }

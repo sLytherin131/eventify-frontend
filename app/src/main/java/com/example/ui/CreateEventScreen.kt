@@ -1,5 +1,3 @@
-// CreateEventScreen.kt
-
 package com.example.ui
 
 import android.app.DatePickerDialog
@@ -31,17 +29,20 @@ fun CreateEventScreen(navController: NavController) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF3D4148)
     val lightCream = Color(0xFFEEEECF)
+    val navBarColor = Color(0xFF243447)
 
     var eventName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var timeStart by remember { mutableStateOf("Sun, 20 April 2025 09:30") }
     var timeEnd by remember { mutableStateOf("Sun, 20 April 2025 12:00") }
     var searchMember by remember { mutableStateOf("") }
+    var selectedIndex by remember { mutableStateOf(2) }
+
+    val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Add, Icons.Default.PieChart, Icons.Default.Person)
+    val items = listOf("Home", "List", "Create", "Settings", "Account")
 
     val dummyMembers = remember {
         mutableStateListOf(
-            "Name - Whatsapp Number",
-            "Name - Whatsapp Number",
             "Name - Whatsapp Number",
             "Name - Whatsapp Number"
         )
@@ -50,12 +51,11 @@ fun CreateEventScreen(navController: NavController) {
     val dummyTasks = remember {
         mutableStateListOf(
             "when an unknown principle is followed.",
-            "when an unknown principle is broken.",
-            "when an unknown principle is confirmed."
+            "when an unknown principle is broken."
         )
     }
 
-    val taskColors = listOf(Color(0xFFB89B1F), Color(0xFF9B2C40), Color(0xFFB89B1F))
+    val taskColors = listOf(Color(0xFFB89B1F), Color(0xFF9B2C40))
 
     var showTaskDialog by remember { mutableStateOf(false) }
 
@@ -76,7 +76,7 @@ fun CreateEventScreen(navController: NavController) {
         backgroundColor = backgroundColor,
         topBar = {
             TopAppBar(
-                backgroundColor = Color(0xFF243447),
+                backgroundColor = navBarColor,
                 elevation = 4.dp
             ) {
                 Box(
@@ -86,6 +86,54 @@ fun CreateEventScreen(navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Eventify", color = lightCream, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(color = navBarColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items.forEachIndexed { index, item ->
+                        val isSelected = selectedIndex == index
+                        val backgroundShape = if (index == 2) CircleShape else RoundedCornerShape(12.dp)
+                        val backgroundColor = if (isSelected) Color.White else Color.Transparent
+                        val iconTint = if (isSelected) navBarColor else lightCream
+
+                        Box(
+                            modifier = Modifier
+                                .size(if (index == 2) 56.dp else 48.dp)
+                                .clip(backgroundShape)
+                                .background(color = backgroundColor)
+                                .clickable {
+                                    selectedIndex = index
+                                    when (index) {
+                                        0 -> navController.navigate("home")  // ✅ tombol home ke HomePageScreen.kt
+                                        1 -> navController.navigate("list_event")
+                                        2 -> navController.navigate("create_event")
+                                        4 -> navController.navigate("personal_admin")
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = item,
+                                tint = iconTint
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -231,7 +279,7 @@ fun CreateEventScreen(navController: NavController) {
                             IconButton(
                                 onClick = { showTaskDialog = true },
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp)) // kotak dengan sudut rounded
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(Color.White)
                                     .padding(8.dp)
                             ) {
@@ -286,6 +334,6 @@ fun CreateEventScreen(navController: NavController) {
     }
 
     if (showTaskDialog) {
-        // TODO: Tambahkan dialog pop-up AddTaskDialog Anda di sini
+        // Tambahkan dialog form task jika diperlukan
     }
 }

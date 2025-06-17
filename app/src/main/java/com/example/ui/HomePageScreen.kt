@@ -1,7 +1,10 @@
 package com.example.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.app.R
@@ -64,42 +68,71 @@ fun HomePageScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate("calendar")
-                },
-                backgroundColor = navBarColor,
-                contentColor = lightCream,
-                modifier = Modifier.padding(bottom = 20.dp, end = 16.dp)
+            Box(
+                modifier = Modifier
+                    .padding(end = 10.dp, bottom = 10.dp) // mepet kanan bawah
+                    .size(56.dp) // bentuk persegi
+                    .clip(RoundedCornerShape(8.dp)) // sudut sedikit rounded, bukan bulat
+                    .background(color = navBarColor)
+                    .clickable { navController.navigate("calendar") },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.CalendarToday, contentDescription = "Calendar")
+                Icon(
+                    imageVector = Icons.Default.CalendarToday,
+                    contentDescription = "Calendar",
+                    tint = lightCream
+                )
             }
         },
         bottomBar = {
-            BottomNavigation(
-                backgroundColor = navBarColor,
-                contentColor = lightCream
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // <- bentuk sudut bulat
+                    .background(color = navBarColor), // <- background tanpa shape di sini
+                contentAlignment = Alignment.Center
             ) {
-                items.forEachIndexed { index, item ->
-                    BottomNavigationItem(
-                        icon = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items.forEachIndexed { index, item ->
+                        val isSelected = selectedIndex == index
+
+                        val backgroundShape = when (index) {
+                            2 -> CircleShape // Tombol "+"
+                            else -> RoundedCornerShape(12.dp)
+                        }
+
+                        val backgroundColor = if (isSelected) Color.White else Color.Transparent
+                        val iconTint = if (isSelected) navBarColor else lightCream
+
+                        Box(
+                            modifier = Modifier
+                                .size(if (index == 2) 56.dp else 48.dp)
+                                .clip(backgroundShape) // <- ini untuk bentuk
+                                .background(color = backgroundColor) // <- ini hanya warna
+                                .clickable {
+                                    selectedIndex = index
+                                    when (index) {
+                                        1 -> navController.navigate("list_event")
+                                        2 -> navController.navigate("create_event")
+                                        4 -> navController.navigate("personal_admin")
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
                             Icon(
                                 imageVector = icons[index],
                                 contentDescription = item,
-                                tint = if (selectedIndex == index) Color.LightGray else lightCream
+                                tint = iconTint
                             )
-                        },
-                        selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                            when (index) {
-                                1 -> navController.navigate("list_event")
-                                2 -> navController.navigate("create_event") // 🆕 tombol Add diarahkan ke "create_event"
-                                4 -> navController.navigate("personal_admin")
-                            }
-                        },
-                        alwaysShowLabel = false
-                    )
+                        }
+                    }
                 }
             }
         }

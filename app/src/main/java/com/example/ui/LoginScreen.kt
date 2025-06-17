@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -116,6 +117,9 @@ class LoginViewModel : ViewModel() {
         _loginSuccess.value = false
         _jwtToken.value = null
     }
+    fun clearLoginResult() {
+        loginResult = null
+    }
 }
 
 // --- UI ---
@@ -130,9 +134,24 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     val backgroundColor = Color(0xFF96AFC9)
+    var showDialog by remember { mutableStateOf(false) }
+    var dialogMessage by remember { mutableStateOf("") }
     val cardColor = Color(0xFF1F2E43)
     val textColor = Color(0xFFFDF6D8)
     val buttonColor = Color(0xFF5D7E99)
+
+    // ✅ Reset loginResult saat screen pertama kali dibuka
+    LaunchedEffect(Unit) {
+        viewModel.clearLoginResult()
+    }
+
+    // --- Tangani hasil login ---
+    LaunchedEffect(viewModel.loginResult) {
+        viewModel.loginResult?.let {
+            dialogMessage = it
+            showDialog = true
+        }
+    }
 
     LaunchedEffect(viewModel.loginSuccess) {
         viewModel.loginSuccess.collectLatest { success ->
@@ -255,18 +274,65 @@ fun LoginScreen(
                                     modifier = Modifier.size(24.dp)
                                 )
                             } else {
-                                Text("Login", color = textColor)
+                                Text(
+                                    text = "Login",
+                                    color = textColor,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
-
-                        viewModel.loginResult?.let {
-                            val color = if (it.contains("berhasil", true)) Color.Green else Color.Red
-                            Text(it, color = color)
-                        }
                     }
                 }
+            }
+
+            // --- ✅ AlertDialog dengan reset loginResult ---
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showDialog = false
+                        viewModel.clearLoginResult()
+                    },
+                    confirmButton = {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Button(
+                                onClick = {
+                                    showDialog = false
+                                    viewModel.clearLoginResult()
+                                },
+                                modifier = Modifier.width(130.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
+                                shape = RoundedCornerShape(30.dp)
+                            ) {
+                                Text("Ok", color = textColor, style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    },
+                    title = {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "Login Failed",
+                                color = Color.Red,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    },
+                    text = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                dialogMessage,
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    },
+                            containerColor = cardColor
+                )
             }
         }
     }
