@@ -70,9 +70,9 @@ fun HomePageScreen(
         floatingActionButton = {
             Box(
                 modifier = Modifier
-                    .padding(end = 10.dp, bottom = 10.dp) // mepet kanan bawah
-                    .size(56.dp) // bentuk persegi
-                    .clip(RoundedCornerShape(8.dp)) // sudut sedikit rounded, bukan bulat
+                    .padding(end = 10.dp, bottom = 10.dp)
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(color = navBarColor)
                     .clickable { navController.navigate("calendar") },
                 contentAlignment = Alignment.Center
@@ -89,8 +89,8 @@ fun HomePageScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(72.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // <- bentuk sudut bulat
-                    .background(color = navBarColor), // <- background tanpa shape di sini
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(color = navBarColor),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -104,7 +104,7 @@ fun HomePageScreen(
                         val isSelected = selectedIndex == index
 
                         val backgroundShape = when (index) {
-                            2 -> CircleShape // Tombol "+"
+                            2 -> CircleShape
                             else -> RoundedCornerShape(12.dp)
                         }
 
@@ -114,8 +114,8 @@ fun HomePageScreen(
                         Box(
                             modifier = Modifier
                                 .size(if (index == 2) 56.dp else 48.dp)
-                                .clip(backgroundShape) // <- ini untuk bentuk
-                                .background(color = backgroundColor) // <- ini hanya warna
+                                .clip(backgroundShape)
+                                .background(color = backgroundColor)
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
@@ -168,12 +168,24 @@ fun HomePageScreen(
                             Icon(Icons.Default.Add, contentDescription = "Add", tint = lightCream)
                         }
                     }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     if (taskViewModel.tasks.isEmpty()) {
                         Text("No personal tasks yet.", color = lightCream)
                     } else {
+                        // Warna berdasarkan tipe task
+                        fun getTypeColor(type: String): Color {
+                            return when (type) {
+                                "Personal" -> Color(0xFFB5E48C) // Hijau
+                                "Work" -> Color(0xFFFFF59D)     // Kuning
+                                "Urgent" -> Color(0xFFE57373)   // Merah
+                                else -> lightCream
+                            }
+                        }
+
                         taskViewModel.tasks.forEach { task ->
+                            val typeColor = getTypeColor(task.type)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -188,7 +200,7 @@ fun HomePageScreen(
                                 )
                                 Text(
                                     text = task.description,
-                                    color = lightCream,
+                                    color = typeColor,
                                     modifier = Modifier
                                         .weight(1f)
                                         .padding(start = 8.dp)

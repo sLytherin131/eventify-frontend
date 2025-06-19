@@ -23,7 +23,9 @@ fun AddPersonalTaskDialog(
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = Color(0xFF1B2A41),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .width(400.dp) // Lebar cukup agar tombol tidak dempet
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -34,7 +36,9 @@ fun AddPersonalTaskDialog(
                     style = MaterialTheme.typography.h6,
                     color = Color(0xFFEAEFC9)
                 )
+
                 Spacer(Modifier.height(16.dp))
+
                 TextField(
                     value = description,
                     onValueChange = { description = it },
@@ -43,30 +47,46 @@ fun AddPersonalTaskDialog(
                         .fillMaxWidth()
                         .height(120.dp),
                     colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.White
+                        backgroundColor = Color.White,
+                        textColor = Color.Black
                     )
                 )
+
                 Spacer(Modifier.height(16.dp))
+
+                Text("Type:", color = Color.White, modifier = Modifier.align(Alignment.Start))
+
+                Spacer(Modifier.height(8.dp))
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Type:", color = Color.White)
-                    Spacer(Modifier.width(8.dp))
                     types.forEach { type ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.weight(1f) // Bagi ruang merata
                         ) {
                             RadioButton(
                                 selected = selectedType == type,
                                 onClick = { selectedType = type },
                                 colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFEAEFC9))
                             )
-                            Text(type, color = Color.White)
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = type,
+                                color = Color.White,
+                                softWrap = false,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+
+                Spacer(Modifier.height(24.dp))
+
                 Button(
                     onClick = {
                         if (description.isNotBlank()) {
@@ -77,7 +97,8 @@ fun AddPersonalTaskDialog(
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF4B6587),
                         contentColor = Color(0xFFEAEFC9)
-                    )
+                    ),
+                    shape = RoundedCornerShape(50)
                 ) {
                     Text("Add")
                 }
