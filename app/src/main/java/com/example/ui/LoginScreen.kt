@@ -133,7 +133,7 @@ fun LoginScreen(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val backgroundColor = Color(0xFF96AFC9)
+    val backgroundColor = Color(0xFF92B0BC)
     var showDialog by remember { mutableStateOf(false) }
     var dialogMessage by remember { mutableStateOf("") }
     val cardColor = Color(0xFF1F2E43)

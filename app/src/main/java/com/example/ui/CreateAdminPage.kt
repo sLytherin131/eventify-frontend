@@ -21,7 +21,7 @@ fun CreateAdminPage(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFBFD6DB))
+            .background(Color(0xFF92B0BC))
     ) {
         Column(
             modifier = Modifier

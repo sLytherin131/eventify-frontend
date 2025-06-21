@@ -98,6 +98,10 @@ class MainActivity : ComponentActivity() {
                         CreateEventScreen(navController)
                     }
 
+                    composable("chart_page") {
+                        ChartPage(navController = navController)
+                    }
+
                 }
             }
         }

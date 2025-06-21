@@ -121,6 +121,7 @@ fun HomePageScreen(
                                     when (index) {
                                         1 -> navController.navigate("list_event")
                                         2 -> navController.navigate("create_event")
+                                        3 -> navController.navigate("chart_page")
                                         4 -> navController.navigate("personal_admin")
                                     }
                                 },

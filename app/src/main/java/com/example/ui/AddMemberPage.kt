@@ -26,7 +26,7 @@ fun AddMemberPage(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF87AABF))
+            .background(Color(0xFF92B0BC))
     ) {
         Column(
             modifier = Modifier

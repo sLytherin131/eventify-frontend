@@ -21,8 +21,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import java.util.*
+import com.example.app.R
 
 @Composable
 fun CreateEventScreen(navController: NavController) {
@@ -85,7 +89,12 @@ fun CreateEventScreen(navController: NavController) {
                         .padding(bottom = 1.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Eventify", color = lightCream, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Image(
+                        painter = painterResource(id = R.drawable.eventifylogo),
+                        contentDescription = "Eventify Logo",
+                        modifier = Modifier.size(150.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 }
             }
         },
@@ -122,6 +131,7 @@ fun CreateEventScreen(navController: NavController) {
                                         0 -> navController.navigate("home")  // ✅ tombol home ke HomePageScreen.kt
                                         1 -> navController.navigate("list_event")
                                         2 -> navController.navigate("create_event")
+                                        3 -> navController.navigate("chart_page")
                                         4 -> navController.navigate("personal_admin")
                                     }
                                 },

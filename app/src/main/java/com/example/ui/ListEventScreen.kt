@@ -94,7 +94,7 @@ fun ListEventScreen(navController: NavController) {
                                         0 -> navController.navigate("home")
                                         1 -> navController.navigate("list_event")
                                         2 -> navController.navigate("create_event")
-                                        3 -> {} // chart belum diarahkan
+                                        3 -> navController.navigate("chart_page")
                                         4 -> navController.navigate("personal_admin")
                                     }
                                 },

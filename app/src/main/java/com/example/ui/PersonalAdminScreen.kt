@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.navigation.NavController
@@ -154,7 +155,7 @@ fun PersonalAdminScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFBFD6DB))
+            .background(color = Color(0xFF92B0BC))
     ) {
         Column(
             modifier = Modifier
@@ -163,14 +164,19 @@ fun PersonalAdminScreen(
                 .padding(16.dp)
                 .background(Color(0xFF213B54), shape = RoundedCornerShape(16.dp))
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Text("Name: ${adminState?.name ?: ""}", color = Color.White)
             Text("Whatsapp Number: ${adminState?.whatsappNumber ?: ""}", color = Color.White)
             Text("Email: ${adminState?.email ?: ""}", color = Color.White)
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Change Information", color = Color.White)
+            Text(
+                "Change Information",
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             val fields = listOf<Triple<String, String, (String) -> Unit>>(
@@ -210,7 +216,9 @@ fun PersonalAdminScreen(
 
             Button(
                 onClick = { viewModel.updateAdminData() },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .width(130.dp)
+                    .align(Alignment.CenterHorizontally),
                 colors = buttonColor,
                 shape = RoundedCornerShape(50)
             ) {
@@ -224,7 +232,9 @@ fun PersonalAdminScreen(
                     viewModel.logout(context)
                     onLogout()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .width(130.dp)
+                    .align(Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF9B2C40),
                     contentColor = Color.White
@@ -236,24 +246,27 @@ fun PersonalAdminScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("create_admin") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = buttonColor,
-                shape = RoundedCornerShape(50)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Create Admin")
-            }
+                Button(
+                    onClick = { navController.navigate("create_admin") },
+                    modifier = Modifier.width(140.dp),
+                    colors = buttonColor,
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text("Create Admin")
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = { navController.navigate("add_member") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = buttonColor,
-                shape = RoundedCornerShape(50)
-            ) {
-                Text("Add Member")
+                Button(
+                    onClick = { navController.navigate("add_member") },
+                    modifier = Modifier.width(140.dp),
+                    colors = buttonColor,
+                    shape = RoundedCornerShape(50)
+                ) {
+                    Text("Add Member")
+                }
             }
         }
 
@@ -279,7 +292,7 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
         "home",
         "list_event",
         "create_event",
-        "calendar",
+        "chart_page",
         "personal_admin"
     )
 

@@ -17,7 +17,7 @@ import com.example.app.R // Ganti sesuai nama package kamu
 @Composable
 fun ForgotPasswordPage(navController: NavController) {
     // Warna UI sesuai gambar
-    val backgroundColor = Color(0xFF96AFC9)
+    val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF1F2E43)
     val textColor = Color(0xFFFDF6D8)
     val buttonColor = Color(0xFF5D7E99)
