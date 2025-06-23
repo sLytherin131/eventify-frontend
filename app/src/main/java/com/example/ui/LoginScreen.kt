@@ -33,6 +33,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import com.example.app.R
 import org.json.JSONObject
+import com.example.api.ApiService
+import com.example.api.LoginRequest
 
 // --- Data & API ---
 
@@ -41,10 +43,6 @@ data class LoginRequest(
     val password: String
 )
 
-interface ApiService {
-    @POST("/admin/login")
-    suspend fun login(@Body request: LoginRequest): Response<ResponseBody>
-}
 
 // --- ViewModel ---
 

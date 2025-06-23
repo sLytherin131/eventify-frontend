@@ -12,13 +12,13 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.draw.clip
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.app.R
@@ -102,12 +102,7 @@ fun HomePageScreen(
                 ) {
                     items.forEachIndexed { index, item ->
                         val isSelected = selectedIndex == index
-
-                        val backgroundShape = when (index) {
-                            2 -> CircleShape
-                            else -> RoundedCornerShape(12.dp)
-                        }
-
+                        val backgroundShape = if (index == 2) CircleShape else RoundedCornerShape(12.dp)
                         val backgroundColor = if (isSelected) Color.White else Color.Transparent
                         val iconTint = if (isSelected) navBarColor else lightCream
 
@@ -115,7 +110,7 @@ fun HomePageScreen(
                             modifier = Modifier
                                 .size(if (index == 2) 56.dp else 48.dp)
                                 .clip(backgroundShape)
-                                .background(color = backgroundColor)
+                                .background(backgroundColor)
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
@@ -175,29 +170,25 @@ fun HomePageScreen(
                     if (taskViewModel.tasks.isEmpty()) {
                         Text("No personal tasks yet.", color = lightCream)
                     } else {
-                        // Warna berdasarkan tipe task
                         fun getTypeColor(type: String): Color {
                             return when (type) {
-                                "Personal" -> Color(0xFFB5E48C) // Hijau
-                                "Work" -> Color(0xFFFFF59D)     // Kuning
-                                "Urgent" -> Color(0xFFE57373)   // Merah
+                                "Personal" -> Color(0xFFB5E48C)
+                                "Work" -> Color(0xFFFFF59D)
+                                "Urgent" -> Color(0xFFE57373)
                                 else -> lightCream
                             }
                         }
 
                         taskViewModel.tasks.forEach { task ->
-                            val typeColor = getTypeColor(task.type)
+                            val typeColor = getTypeColor(task.taskType)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(vertical = 4.dp)
                             ) {
-                                Checkbox(
-                                    checked = task.isDone,
-                                    onCheckedChange = { taskViewModel.toggleDone(task.id) },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = lightCream,
-                                        uncheckedColor = lightCream
-                                    )
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Task Icon",
+                                    tint = typeColor
                                 )
                                 Text(
                                     text = task.description,

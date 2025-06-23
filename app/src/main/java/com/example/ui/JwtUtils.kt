@@ -5,11 +5,14 @@ import kotlinx.serialization.json.jsonObject
 
 fun decodeJwt(jwt: String): JsonObject? {
     return try {
-        val payload = jwt.split(".")[1]
+        val parts = jwt.split(".")
+        if (parts.size != 3) return null // pastikan ada 3 bagian: header.payload.signature
+        val payload = parts[1]
         val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
-        val decoded = String(decodedBytes)
-        Json.parseToJsonElement(decoded).jsonObject
+        val decodedString = String(decodedBytes)
+        Json.parseToJsonElement(decodedString).jsonObject
     } catch (e: Exception) {
+        e.printStackTrace()
         null
     }
 }

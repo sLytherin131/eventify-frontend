@@ -4,8 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.ui.ui.theme.EventifyTheme
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = if (loginSuccess) "home" else "login"
+                    startDestination = if (jwtToken != null) "home" else "login"
                 ) {
                     // LOGIN SCREEN
                     composable("login") {
@@ -47,15 +54,17 @@ class MainActivity : ComponentActivity() {
 
                     // HOME SCREEN
                     composable("home") {
-                        if (jwtToken != null) {
-                            HomePageScreen(
-                                navController = navController,
-                                jwtToken = jwtToken!!
-                            )
-                        } else {
-                            LaunchedEffect(Unit) {
-                                navController.navigate("login") {
-                                    popUpTo("home") { inclusive = true }
+                        when {
+                            jwtToken != null -> {
+                                HomePageScreen(navController = navController, jwtToken = jwtToken!!)
+                            }
+                            else -> {
+                                // Tampilkan indikator loading agar tidak langsung navigasi ulang
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
                                 }
                             }
                         }

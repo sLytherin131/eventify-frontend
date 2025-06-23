@@ -3,40 +3,75 @@ package com.example.ui
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import com.example.api.ApiService
+import com.example.api.CreateTaskRequest
+import com.example.api.createApiService
+import com.example.api.TaskResponse
 
 data class PersonalTask(
     val id: Int,
+    val adminWhatsapp: String,
     val description: String,
-    val type: String,
-    val isDone: Boolean = false
+    val taskType: String,
+    val createdAt: Long
 )
 
 class TaskViewModel(private val jwtToken: String) : ViewModel() {
-    private var nextId = 0
     private val _tasks = mutableStateListOf<PersonalTask>()
     val tasks: List<PersonalTask> = _tasks
 
-    // Contoh penggunaan jwtToken
+    private val api = createApiService(jwtToken)
+
     init {
-        println("JWT Token is $jwtToken")
-        // Kamu bisa pakai token ini untuk load data dari API misalnya
+        fetchTasks()
+    }
+
+    private fun fetchTasks() {
+        viewModelScope.launch {
+            try {
+                val response = api.getTasks()
+                _tasks.clear()
+                _tasks.addAll(response.map {
+                    PersonalTask(it.id, it.adminWhatsapp, it.description, it.taskType, it.createdAt)
+                })
+            } catch (e: Exception) {
+                println("Error fetching tasks: ${e.message}")
+            }
+        }
     }
 
     fun addTask(description: String, type: String) {
-        _tasks.add(PersonalTask(id = nextId++, description = description, type = type))
+        viewModelScope.launch {
+            try {
+                val newTask = api.addTask(CreateTaskRequest(description, type))
+                _tasks.add(
+                    PersonalTask(
+                        id = newTask.id,
+                        adminWhatsapp = newTask.adminWhatsapp,
+                        description = newTask.description,
+                        taskType = newTask.taskType,
+                        createdAt = newTask.createdAt
+                    )
+                )
+            } catch (e: Exception) {
+                println("Error adding task: ${e.message}")
+            }
+        }
     }
 
     fun deleteTask(id: Int) {
-        _tasks.removeAll { it.id == id }
-    }
-
-    fun toggleDone(id: Int) {
-        val index = _tasks.indexOfFirst { it.id == id }
-        if (index != -1) {
-            val task = _tasks[index]
-            _tasks[index] = task.copy(isDone = !task.isDone)
+        viewModelScope.launch {
+            try {
+                api.deleteTask(id)
+                _tasks.removeAll { it.id == id }
+            } catch (e: Exception) {
+                println("Error deleting task: ${e.message}")
+            }
         }
     }
+
 }
 
 class TaskViewModelFactory(private val jwtToken: String) : ViewModelProvider.Factory {
