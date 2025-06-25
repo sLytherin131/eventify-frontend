@@ -42,7 +42,7 @@ fun CreateAdminPage(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF213B54), shape = RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1F2E43), shape = RoundedCornerShape(12.dp))
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

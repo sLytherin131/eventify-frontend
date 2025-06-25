@@ -29,7 +29,7 @@ import com.example.app.R
 @Composable
 fun ChartPage(navController: NavController) {
     val backgroundColor = Color(0xFF92B0BC)
-    val cardColor = Color(0xFF3D4148)
+    val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
 

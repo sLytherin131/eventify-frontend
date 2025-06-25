@@ -30,7 +30,7 @@ fun CalendarPage(navController: NavHostController) {
     val navBarColor = Color(0xFF243447)
     val lightBlue = Color(0xFF92B0BC)
     val lightCream = Color(0xFFEEEECF)
-    val cardColor = Color(0xFF3D4148)
+    val cardColor = Color(0xFF1F2E43)
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }

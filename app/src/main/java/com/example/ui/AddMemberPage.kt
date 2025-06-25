@@ -58,7 +58,7 @@ fun AddMemberPage(navController: NavController) {
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
-                    .background(Color(0xFF213B54), shape = RoundedCornerShape(12.dp))
+                    .background(Color(0xFF1F2E43), shape = RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 OutlinedTextField(

@@ -162,7 +162,7 @@ fun PersonalAdminScreen(
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(16.dp)
-                .background(Color(0xFF213B54), shape = RoundedCornerShape(16.dp))
+                .background(Color(0xFF1F2E43), shape = RoundedCornerShape(16.dp))
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {

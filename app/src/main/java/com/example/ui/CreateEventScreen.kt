@@ -31,7 +31,7 @@ import com.example.app.R
 @Composable
 fun CreateEventScreen(navController: NavController) {
     val backgroundColor = Color(0xFF92B0BC)
-    val cardColor = Color(0xFF3D4148)
+    val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
 
@@ -163,7 +163,9 @@ fun CreateEventScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Create Event", color = lightCream, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("Create Event", color = lightCream, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
@@ -204,6 +206,7 @@ fun CreateEventScreen(navController: NavController) {
                             enabled = false,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(48.dp)
                                 .clickable { pickDateTime { selected -> timeStart = selected } },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
                                 textColor = Color.White,
@@ -223,6 +226,7 @@ fun CreateEventScreen(navController: NavController) {
                             enabled = false,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(48.dp)
                                 .clickable { pickDateTime { selected -> timeEnd = selected } },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
                                 textColor = Color.White,
@@ -242,18 +246,34 @@ fun CreateEventScreen(navController: NavController) {
                             OutlinedTextField(
                                 value = searchMember,
                                 onValueChange = { searchMember = it },
-                                placeholder = { Text("Search...", color = Color.LightGray) },
-                                modifier = Modifier.weight(2f),
+                                placeholder = {
+                                    Text(
+                                        "Search...",
+                                        color = Color.LightGray,
+                                        fontSize = 12.sp // Ukuran font placeholder diperkecil
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = "Search",
+                                        tint = lightCream
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(2f)
+                                    .height(48.dp), // Tetap 48.dp
                                 colors = TextFieldDefaults.outlinedTextFieldColors(
                                     textColor = Color.White,
                                     focusedBorderColor = Color.White,
                                     unfocusedBorderColor = Color.LightGray
                                 ),
+                                textStyle = LocalTextStyle.current.copy(
+                                    fontSize = 13.sp, // Ukuran font teks input juga diperkecil
+                                    color = Color.White
+                                ),
                                 singleLine = true
                             )
-                            IconButton(onClick = { }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search", tint = lightCream)
-                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -265,6 +285,10 @@ fun CreateEventScreen(navController: NavController) {
                                 .padding(vertical = 4.dp)
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
+                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Text("Members", fontWeight = FontWeight.Bold, color = Color.Black)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
                                 dummyMembers.forEachIndexed { index, member ->
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -285,15 +309,31 @@ fun CreateEventScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Add Task:", color = lightCream, modifier = Modifier.weight(1f))
-                            IconButton(
-                                onClick = { showTaskDialog = true },
+                            Text(
+                                "Add Task:",
+                                color = lightCream,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.White)
-                                    .padding(8.dp)
+                                    .weight(1f),
+                                contentAlignment = Alignment.CenterEnd // ini yang bikin tombol + rata kanan
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = "Add Task", tint = cardColor)
+                                IconButton(
+                                    onClick = { showTaskDialog = true },
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color.White)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add Task",
+                                        tint = cardColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
 
@@ -305,8 +345,9 @@ fun CreateEventScreen(navController: NavController) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
+                                    .clip(RoundedCornerShape(12.dp)) // Rounded
                                     .background(taskColors[index % taskColors.size])
-                                    .padding(8.dp)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp) // Tinggi lebih pendek
                             ) {
                                 Text(
                                     "${index + 1}. ${task.take(25)}...",
@@ -324,16 +365,18 @@ fun CreateEventScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Button(
-                            onClick = { /* create event */ },
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color(0xFF6A8695),
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(50)
-                        ) {
-                            Text("Create")
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Button(
+                                onClick = { /* create event */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = Color(0xFF6A8695),
+                                    contentColor = Color.White
+                                ),
+                                modifier = Modifier.width(130.dp),
+                                shape = RoundedCornerShape(50)
+                            ) {
+                                Text("Create")
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

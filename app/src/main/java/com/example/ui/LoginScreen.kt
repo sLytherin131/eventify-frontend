@@ -75,7 +75,8 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                val response = apiService.login(LoginRequest(identifier, password))
+                val cleanIdentifier = identifier.trim().replace("\n", "").replace("\r", "")
+                val response = apiService.login(LoginRequest(cleanIdentifier, password))
                 if (response.isSuccessful) {
                     val bodyStr = response.body()?.string()
                     if (bodyStr != null) {

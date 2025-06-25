@@ -22,7 +22,7 @@ fun AddPersonalTaskDialog(
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color(0xFF1B2A41),
+            color = Color(0xFF1F2E43),
             modifier = Modifier
                 .padding(16.dp)
                 .width(400.dp) // Lebar cukup agar tombol tidak dempet
