@@ -25,7 +25,7 @@ fun AddPersonalTaskDialog(
             color = Color(0xFF1F2E43),
             modifier = Modifier
                 .padding(16.dp)
-                .width(400.dp) // Lebar cukup agar tombol tidak dempet
+                .width(400.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -54,33 +54,35 @@ fun AddPersonalTaskDialog(
 
                 Spacer(Modifier.height(16.dp))
 
-                Text("Type:", color = Color.White, modifier = Modifier.align(Alignment.Start))
-
-                Spacer(Modifier.height(8.dp))
-
+                // ✅ Type with vertical options beside the label
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    types.forEach { type ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f) // Bagi ruang merata
-                        ) {
-                            RadioButton(
-                                selected = selectedType == type,
-                                onClick = { selectedType = type },
-                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFEAEFC9))
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = type,
-                                color = Color.White,
-                                softWrap = false,
-                                maxLines = 1
-                            )
+                    Text(
+                        text = "Type:",
+                        color = Color.White,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(9.dp),
+                        modifier = Modifier.padding(start = 9.dp) // ⬅️ Tambah padding kiri di sini
+                    ) {
+                        types.forEach { type ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedType == type,
+                                    onClick = { selectedType = type },
+                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFEAEFC9))
+                                )
+                                Text(
+                                    text = type,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }

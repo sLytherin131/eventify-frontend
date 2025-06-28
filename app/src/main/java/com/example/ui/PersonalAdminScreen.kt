@@ -1,6 +1,5 @@
 package com.example.ui
 
-import android.app.Application
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -34,6 +32,10 @@ import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.font.FontWeight
 
 /* === Data Class === */
 data class AdminRequest(
@@ -52,29 +54,23 @@ interface AdminApi {
     suspend fun updateAdmin(
         @Path("whatsappNumber") whatsappNumber: String,
         @Body admin: AdminRequest
-    ): Void
+    ): AdminRequest
 }
 
 /* === Token Interceptor === */
-class AuthInterceptor(val context: Context) : Interceptor {
+class AuthInterceptor(private val token: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = getTokenFromPrefs(context)
         val request = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
             .build()
         return chain.proceed(request)
     }
-
-    private fun getTokenFromPrefs(context: Context): String {
-        val prefs = context.getSharedPreferences("session", Context.MODE_PRIVATE)
-        return prefs.getString("token", "") ?: ""
-    }
 }
 
 /* === Retrofit Client === */
-fun provideAdminApi(context: Context): AdminApi {
+fun provideAdminApi(token: String): AdminApi {
     val client = OkHttpClient.Builder()
-        .addInterceptor(AuthInterceptor(context))
+        .addInterceptor(AuthInterceptor(token))
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -87,8 +83,8 @@ fun provideAdminApi(context: Context): AdminApi {
 }
 
 /* === ViewModel === */
-class AdminViewModel(application: Application, context: Context) : AndroidViewModel(application) {
-    private val api = provideAdminApi(context)
+class AdminViewModel(private val token: String) : ViewModel() {
+    private val api = provideAdminApi(token)
 
     private val _admin = MutableStateFlow<AdminRequest?>(null)
     val admin: StateFlow<AdminRequest?> = _admin
@@ -107,14 +103,17 @@ class AdminViewModel(application: Application, context: Context) : AndroidViewMo
                 whatsapp = response.whatsappNumber
                 email = response.email
                 password = response.password
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            } catch (_: Exception) {}
         }
     }
 
-    fun updateAdminData() {
+    fun updateAdminData(onResult: (String) -> Unit) {
         viewModelScope.launch {
+            if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                onResult("Please fill all fields")
+                return@launch
+            }
+
             try {
                 val updatedAdmin = AdminRequest(
                     whatsappNumber = whatsapp,
@@ -122,10 +121,14 @@ class AdminViewModel(application: Application, context: Context) : AndroidViewMo
                     email = email,
                     password = password
                 )
-                api.updateAdmin(whatsapp, updatedAdmin)
-                fetchAdminData()
+                val response = api.updateAdmin(whatsapp, updatedAdmin)
+                _admin.value = response
+                name = response.name
+                email = response.email
+                password = response.password
+                onResult("Update successful")
             } catch (e: Exception) {
-                e.printStackTrace()
+                onResult("Update failed")
             }
         }
     }
@@ -136,17 +139,26 @@ class AdminViewModel(application: Application, context: Context) : AndroidViewMo
     }
 }
 
+/* === ViewModel Factory === */
+class AdminViewModelFactory(private val token: String) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return AdminViewModel(token) as T
+    }
+}
+
 /* === Composable Screen === */
 @Composable
 fun PersonalAdminScreen(
     navController: NavController,
+    jwtToken: String,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
-    val viewModel = remember {
-        AdminViewModel(context.applicationContext as Application, context)
-    }
+    val viewModel: AdminViewModel = viewModel(factory = AdminViewModelFactory(jwtToken))
     val adminState by viewModel.admin.collectAsState()
+
+    var resultMessage by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchAdminData()
@@ -166,60 +178,126 @@ fun PersonalAdminScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text("Name: ${adminState?.name ?: ""}", color = Color.White)
-            Text("Whatsapp Number: ${adminState?.whatsappNumber ?: ""}", color = Color.White)
-            Text("Email: ${adminState?.email ?: ""}", color = Color.White)
+            Row {
+                Text(
+                    text = "Name: ",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = adminState?.name ?: "",
+                    color = Color.White
+                )
+            }
+            Row {
+                Text(
+                    text = "Whatsapp Number: ",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = adminState?.whatsappNumber ?: "",
+                    color = Color.White
+                )
+            }
+            Row {
+                Text(
+                    text = "Email: ",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = adminState?.email ?: "",
+                    color = Color.White
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "Change Information",
+                text = "Change Information",
                 color = Color.White,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            val fields = listOf<Triple<String, String, (String) -> Unit>>(
-                Triple(viewModel.name, "Name:", { viewModel.name = it }),
-                Triple(viewModel.email, "Email:", { viewModel.email = it }),
-                Triple(viewModel.whatsapp, "Whatsapp Number:", { viewModel.whatsapp = it }),
-                Triple(viewModel.password, "Password:", { viewModel.password = it })
-            )
-
-            fields.forEach { (value, label, onChange) ->
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = onChange,
-                    label = { Text(label, color = Color.White) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    enabled = label != "Whatsapp Number:",
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.LightGray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        disabledBorderColor = Color.Gray,
-                        disabledLabelColor = Color.LightGray,
-                        cursorColor = Color.White
-                    )
+            OutlinedTextField(
+                value = viewModel.name,
+                onValueChange = { viewModel.name = it },
+                label = { Text("Name:", color = Color.White) },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White
                 )
-            }
+            )
+            OutlinedTextField(
+                value = viewModel.email,
+                onValueChange = { viewModel.email = it },
+                label = { Text("Email:", color = Color.White) },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White
+                )
+            )
+            OutlinedTextField(
+                value = viewModel.whatsapp,
+                onValueChange = {},
+                enabled = false,
+                label = { Text("Whatsapp Number:", color = Color.White) },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = Color.Gray,
+                    disabledTextColor = Color.LightGray,
+                    disabledLabelColor = Color.LightGray
+                )
+            )
+            OutlinedTextField(
+                value = viewModel.password,
+                onValueChange = { viewModel.password = it },
+                label = { Text("Password:", color = Color.White) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = image,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val buttonColor = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF6A8695),
-                contentColor = Color.White
-            )
-
             Button(
-                onClick = { viewModel.updateAdminData() },
-                modifier = Modifier
-                    .width(130.dp)
-                    .align(Alignment.CenterHorizontally),
-                colors = buttonColor,
+                onClick = {
+                    viewModel.updateAdminData { message ->
+                        resultMessage = message
+                    }
+                },
+                modifier = Modifier.width(130.dp).align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
                 shape = RoundedCornerShape(50)
             ) {
                 Text("Change")
@@ -232,13 +310,8 @@ fun PersonalAdminScreen(
                     viewModel.logout(context)
                     onLogout()
                 },
-                modifier = Modifier
-                    .width(130.dp)
-                    .align(Alignment.CenterHorizontally),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF9B2C40),
-                    contentColor = Color.White
-                ),
+                modifier = Modifier.width(130.dp).align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B2C40)),
                 shape = RoundedCornerShape(50)
             ) {
                 Text("Sign Out")
@@ -251,18 +324,18 @@ fun PersonalAdminScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = { navController.navigate("create_admin") },
+                    onClick = { navController.navigate("create_admin/${jwtToken}") },
                     modifier = Modifier.width(140.dp),
-                    colors = buttonColor,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
                     shape = RoundedCornerShape(50)
                 ) {
                     Text("Create Admin")
                 }
 
                 Button(
-                    onClick = { navController.navigate("add_member") },
+                    onClick = { navController.navigate("add_member/${jwtToken}") },
                     modifier = Modifier.width(140.dp),
-                    colors = buttonColor,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
                     shape = RoundedCornerShape(50)
                 ) {
                     Text("Add Member")
@@ -271,6 +344,38 @@ fun PersonalAdminScreen(
         }
 
         BottomNavigationBar(navController = navController)
+
+        if (resultMessage != null) {
+            AlertDialog(
+                onDismissRequest = { resultMessage = null },
+                confirmButton = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Button(
+                            onClick = { resultMessage = null },
+                            modifier = Modifier.width(130.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
+                            shape = RoundedCornerShape(30.dp)
+                        ) {
+                            Text("Ok", color = Color.White)
+                        }
+                    }
+                },
+                title = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (resultMessage!!.contains("success", true)) "Success" else "Failed",
+                            color = if (resultMessage!!.contains("success", true)) Color.Green else Color.Red
+                        )
+                    }
+                },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(resultMessage!!, color = Color.White, textAlign = TextAlign.Center)
+                    }
+                },
+                containerColor = Color(0xFF1F2E43)
+            )
+        }
     }
 }
 

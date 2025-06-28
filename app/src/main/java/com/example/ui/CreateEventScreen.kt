@@ -3,8 +3,7 @@ package com.example.ui
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.TimePicker
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -13,23 +12,27 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
-import java.util.*
 import com.example.app.R
+import java.text.SimpleDateFormat
+import java.util.*
+
+enum class TaskType {
+    NORMAL, URGENT
+}
 
 @Composable
-fun CreateEventScreen(navController: NavController) {
+fun CreateEventScreen(
+    navController: NavController,
+    jwtToken: String
+) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
@@ -41,27 +44,25 @@ fun CreateEventScreen(navController: NavController) {
     var timeEnd by remember { mutableStateOf("Sun, 20 April 2025 12:00") }
     var searchMember by remember { mutableStateOf("") }
     var selectedIndex by remember { mutableStateOf(2) }
+    var showEditTaskDialog by remember { mutableStateOf(false) }
+    var editedTaskIndex by remember { mutableStateOf(-1) }
+    var editedTaskMemo by remember { mutableStateOf("") }
+    var editedTaskType by remember { mutableStateOf(TaskType.NORMAL) }
 
     val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Add, Icons.Default.PieChart, Icons.Default.Person)
     val items = listOf("Home", "List", "Create", "Settings", "Account")
 
     val dummyMembers = remember {
-        mutableStateListOf(
-            "Name - Whatsapp Number",
-            "Name - Whatsapp Number"
-        )
+        mutableStateListOf("Name - Whatsapp Number")
     }
 
     val dummyTasks = remember {
-        mutableStateListOf(
-            "when an unknown principle is followed.",
-            "when an unknown principle is broken."
-        )
+        mutableStateListOf<Pair<String, TaskType>>()
     }
 
-    val taskColors = listOf(Color(0xFFB89B1F), Color(0xFF9B2C40))
-
     var showTaskDialog by remember { mutableStateOf(false) }
+    var newTaskMemo by remember { mutableStateOf("") }
+    var newTaskType by remember { mutableStateOf(TaskType.NORMAL) }
 
     val context = LocalContext.current
 
@@ -70,7 +71,7 @@ fun CreateEventScreen(navController: NavController) {
         DatePickerDialog(context, { _, year, month, dayOfMonth ->
             TimePickerDialog(context, { _: TimePicker, hour: Int, minute: Int ->
                 calendar.set(year, month, dayOfMonth, hour, minute)
-                val date = java.text.SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault()).format(calendar.time)
+                val date = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault()).format(calendar.time)
                 onPicked(date)
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
@@ -79,21 +80,12 @@ fun CreateEventScreen(navController: NavController) {
     Scaffold(
         backgroundColor = backgroundColor,
         topBar = {
-            TopAppBar(
-                backgroundColor = navBarColor,
-                elevation = 4.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 1.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+            TopAppBar(backgroundColor = navBarColor, elevation = 4.dp) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Image(
                         painter = painterResource(id = R.drawable.eventifylogo),
                         contentDescription = "Eventify Logo",
-                        modifier = Modifier.size(150.dp),
-                        contentScale = ContentScale.Fit
+                        modifier = Modifier.size(150.dp)
                     )
                 }
             }
@@ -108,9 +100,7 @@ fun CreateEventScreen(navController: NavController) {
                 contentAlignment = Alignment.Center
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -124,11 +114,11 @@ fun CreateEventScreen(navController: NavController) {
                             modifier = Modifier
                                 .size(if (index == 2) 56.dp else 48.dp)
                                 .clip(backgroundShape)
-                                .background(color = backgroundColor)
+                                .background(backgroundColor)
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
-                                        0 -> navController.navigate("home")  // ✅ tombol home ke HomePageScreen.kt
+                                        0 -> navController.navigate("home")
                                         1 -> navController.navigate("list_event")
                                         2 -> navController.navigate("create_event")
                                         3 -> navController.navigate("chart_page")
@@ -137,11 +127,7 @@ fun CreateEventScreen(navController: NavController) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = icons[index],
-                                contentDescription = item,
-                                tint = iconTint
-                            )
+                            Icon(imageVector = icons[index], contentDescription = item, tint = iconTint)
                         }
                     }
                 }
@@ -149,10 +135,7 @@ fun CreateEventScreen(navController: NavController) {
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
@@ -163,9 +146,7 @@ fun CreateEventScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Text("Create Event", color = lightCream, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                        }
+                        Text("Create Event", color = lightCream, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.CenterHorizontally))
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
@@ -173,11 +154,7 @@ fun CreateEventScreen(navController: NavController) {
                             onValueChange = { eventName = it },
                             label = { Text("Event Name:", color = lightCream) },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                textColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.LightGray
-                            )
+                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.LightGray)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -186,14 +163,8 @@ fun CreateEventScreen(navController: NavController) {
                             value = description,
                             onValueChange = { description = it },
                             label = { Text("Description:", color = lightCream) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                textColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.LightGray
-                            )
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.LightGray)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -204,16 +175,8 @@ fun CreateEventScreen(navController: NavController) {
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable { pickDateTime { selected -> timeStart = selected } },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                textColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.LightGray,
-                                disabledTextColor = Color.White
-                            )
+                            modifier = Modifier.fillMaxWidth().clickable { pickDateTime { timeStart = it } },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, disabledTextColor = Color.White)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -224,76 +187,32 @@ fun CreateEventScreen(navController: NavController) {
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable { pickDateTime { selected -> timeEnd = selected } },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                textColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.LightGray,
-                                disabledTextColor = Color.White
-                            )
+                            modifier = Modifier.fillMaxWidth().clickable { pickDateTime { timeEnd = it } },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, disabledTextColor = Color.White)
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Add Member:", color = lightCream, modifier = Modifier.weight(1f))
                             OutlinedTextField(
                                 value = searchMember,
                                 onValueChange = { searchMember = it },
-                                placeholder = {
-                                    Text(
-                                        "Search...",
-                                        color = Color.LightGray,
-                                        fontSize = 12.sp // Ukuran font placeholder diperkecil
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        Icons.Default.Search,
-                                        contentDescription = "Search",
-                                        tint = lightCream
-                                    )
-                                },
-                                modifier = Modifier
-                                    .weight(2f)
-                                    .height(48.dp), // Tetap 48.dp
-                                colors = TextFieldDefaults.outlinedTextFieldColors(
-                                    textColor = Color.White,
-                                    focusedBorderColor = Color.White,
-                                    unfocusedBorderColor = Color.LightGray
-                                ),
-                                textStyle = LocalTextStyle.current.copy(
-                                    fontSize = 13.sp, // Ukuran font teks input juga diperkecil
-                                    color = Color.White
-                                ),
-                                singleLine = true
+                                placeholder = { Text("Search...", fontSize = 12.sp, color = Color.LightGray) },
+                                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = lightCream) },
+                                modifier = Modifier.weight(2f),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White)
                             )
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Card(
-                            backgroundColor = Color.White,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
+                        Card(backgroundColor = Color.White, modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Text("Members", fontWeight = FontWeight.Bold, color = Color.Black)
-                                }
+                                Text("Members", color = Color.Black, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
                                 Spacer(modifier = Modifier.height(4.dp))
                                 dummyMembers.forEachIndexed { index, member ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                         Text("• $member", modifier = Modifier.weight(1f))
                                         IconButton(onClick = { dummyMembers.removeAt(index) }) {
                                             Icon(Icons.Default.Close, contentDescription = "Remove")
@@ -305,34 +224,14 @@ fun CreateEventScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                "Add Task:",
-                                color = lightCream,
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f),
-                                contentAlignment = Alignment.CenterEnd // ini yang bikin tombol + rata kanan
-                            ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text("Add Task:", color = lightCream, modifier = Modifier.weight(1f))
+                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                                 IconButton(
                                     onClick = { showTaskDialog = true },
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.White)
+                                    modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color.White)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Add Task",
-                                        tint = cardColor,
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    Icon(Icons.Default.Add, contentDescription = "Add Task", tint = cardColor)
                                 }
                             }
                         }
@@ -340,23 +239,30 @@ fun CreateEventScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(8.dp))
 
                         dummyTasks.forEachIndexed { index, task ->
+                            val (memo, type) = task
+                            val taskColor = if (type == TaskType.NORMAL) Color(0xFFB89B1F) else Color(0xFF9B2C40)
+
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
-                                    .clip(RoundedCornerShape(12.dp)) // Rounded
-                                    .background(taskColors[index % taskColors.size])
-                                    .padding(horizontal = 12.dp, vertical = 6.dp) // Tinggi lebih pendek
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(taskColor)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                Text(
-                                    "${index + 1}. ${task.take(25)}...",
-                                    modifier = Modifier.weight(1f),
-                                    color = Color.White
-                                )
-                                IconButton(onClick = { /* Edit */ }) {
+                                Text("${index + 1}. ${memo.take(25)}...", color = Color.White, modifier = Modifier.weight(1f))
+
+                                // ✅ Tombol Edit dengan aksi menampilkan dialog edit
+                                IconButton(onClick = {
+                                    editedTaskIndex = index
+                                    editedTaskMemo = memo
+                                    editedTaskType = type
+                                    showEditTaskDialog = true
+                                }) {
                                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                                 }
+
                                 IconButton(onClick = { dummyTasks.removeAt(index) }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
                                 }
@@ -365,18 +271,13 @@ fun CreateEventScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Button(
-                                onClick = { /* create event */ },
-                                colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = Color(0xFF6A8695),
-                                    contentColor = Color.White
-                                ),
-                                modifier = Modifier.width(130.dp),
-                                shape = RoundedCornerShape(50)
-                            ) {
-                                Text("Create")
-                            }
+                        Button(
+                            onClick = { /* Create logic */ },
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A8695), contentColor = Color.White),
+                            modifier = Modifier.align(Alignment.CenterHorizontally).width(130.dp),
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text("Create")
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -387,6 +288,220 @@ fun CreateEventScreen(navController: NavController) {
     }
 
     if (showTaskDialog) {
-        // Tambahkan dialog form task jika diperlukan
+        AlertDialog(
+            onDismissRequest = { showTaskDialog = false },
+            confirmButton = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Button(
+                        onClick = {
+                            if (newTaskMemo.isNotBlank()) {
+                                dummyTasks.add(Pair(newTaskMemo, newTaskType))
+                                newTaskMemo = ""
+                                newTaskType = TaskType.NORMAL
+                                showTaskDialog = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF5E819B),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier.width(130.dp)
+                    ) {
+                        Text("Add")
+                    }
+                }
+            },
+            title = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("Task", color = Color(0xFFEEEECF), fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = newTaskMemo,
+                        onValueChange = { newTaskMemo = it },
+                        placeholder = { Text("Memo...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            textColor = Color.Black,
+                            backgroundColor = Color.White,
+                            focusedBorderColor = Color.LightGray,
+                            unfocusedBorderColor = Color.LightGray
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Tombol NORMAL
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF6A5F00))
+                                .clickable { newTaskType = TaskType.NORMAL }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            RadioButton(
+                                selected = newTaskType == TaskType.NORMAL,
+                                onClick = { newTaskType = TaskType.NORMAL },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color.White,
+                                    unselectedColor = Color.White
+                                )
+                            )
+                            Text("Normal", color = Color.White)
+                        }
+
+                        // Tombol URGENT
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF661D1D))
+                                .clickable { newTaskType = TaskType.URGENT }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            RadioButton(
+                                selected = newTaskType == TaskType.URGENT,
+                                onClick = { newTaskType = TaskType.URGENT },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color.White,
+                                    unselectedColor = Color.White
+                                )
+                            )
+                            Text("Urgent", color = Color.White)
+                        }
+                    }
+                }
+            },
+            backgroundColor = Color(0xFF1F2E43),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+    if (showEditTaskDialog && editedTaskIndex >= 0) {
+        AlertDialog(
+            onDismissRequest = { showEditTaskDialog = false },
+            confirmButton = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Button(
+                        onClick = {
+                            if (editedTaskMemo.isNotBlank()) {
+                                dummyTasks[editedTaskIndex] = Pair(editedTaskMemo, editedTaskType)
+                                showEditTaskDialog = false
+                                editedTaskIndex = -1
+                                editedTaskMemo = ""
+                                editedTaskType = TaskType.NORMAL
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF5E819B),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier.width(130.dp)
+                    ) {
+                        Text("Save")
+                    }
+                }
+            },
+            title = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("Task", color = Color(0xFFEEEECF), fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = editedTaskMemo,
+                        onValueChange = { editedTaskMemo = it },
+                        placeholder = { Text("Memo...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            textColor = Color.Black,
+                            backgroundColor = Color.White,
+                            focusedBorderColor = Color.LightGray,
+                            unfocusedBorderColor = Color.LightGray
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Tombol NORMAL
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF6A5F00))
+                                .clickable { editedTaskType = TaskType.NORMAL }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            RadioButton(
+                                selected = editedTaskType == TaskType.NORMAL,
+                                onClick = { editedTaskType = TaskType.NORMAL },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color.White,
+                                    unselectedColor = Color.White
+                                )
+                            )
+                            Text("Normal", color = Color.White)
+                        }
+
+                        // Tombol URGENT
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF661D1D))
+                                .clickable { editedTaskType = TaskType.URGENT }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            RadioButton(
+                                selected = editedTaskType == TaskType.URGENT,
+                                onClick = { editedTaskType = TaskType.URGENT },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color.White,
+                                    unselectedColor = Color.White
+                                )
+                            )
+                            Text("Urgent", color = Color.White)
+                        }
+                    }
+                }
+            },
+            backgroundColor = Color(0xFF1F2E43),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(12.dp)
+        )
     }
 }

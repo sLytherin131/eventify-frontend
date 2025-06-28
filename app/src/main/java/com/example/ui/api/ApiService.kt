@@ -26,6 +26,13 @@ data class TaskResponse(
     val createdAt: Long
 )
 
+data class CreateAdminRequest(
+    val whatsappNumber: String,
+    val name: String,
+    val email: String,
+    val password: String
+)
+
 interface ApiService {
     // Login endpoint
     @POST("/admin/login")
@@ -40,6 +47,9 @@ interface ApiService {
 
     @DELETE("personal_tasks/{id}")
     suspend fun deleteTask(@Path("id") id: Int)
+
+    @POST("admin")
+    suspend fun createAdmin(@Body request: CreateAdminRequest): Response<Unit>
 }
 
 // Fungsi untuk membuat ApiService dengan token
@@ -61,3 +71,14 @@ fun createApiService(jwtToken: String): ApiService {
 
     return retrofit.create(ApiService::class.java)
 }
+
+// Fungsi untuk membuat ApiService tanpa token (untuk endpoint publik seperti /admin)
+fun createPublicApiService(): ApiService {
+    val retrofit = Retrofit.Builder()
+        .baseUrl("http://10.0.2.2:8082")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    return retrofit.create(ApiService::class.java)
+}
+

@@ -10,14 +10,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.api.CreateAdminRequest
+import com.example.api.createPublicApiService
 import com.example.app.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-fun CreateAdminPage(navController: NavController) {
+fun CreateAdminPage(navController: NavController, jwtToken: String) {
+    val context = LocalContext.current
+
+    var name by remember { mutableStateOf("") }
+    var contact by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var resultMessage by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -28,7 +42,6 @@ fun CreateAdminPage(navController: NavController) {
                 .align(Alignment.Center)
                 .padding(16.dp)
         ) {
-            // Ganti teks dengan logo
             Image(
                 painter = painterResource(id = R.drawable.eventifylogo),
                 contentDescription = "Eventify Logo",
@@ -67,10 +80,6 @@ fun CreateAdminPage(navController: NavController) {
                     cursorColor = Color.White
                 )
 
-                var name by remember { mutableStateOf("") }
-                var contact by remember { mutableStateOf("") }
-                var password by remember { mutableStateOf("") }
-
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -103,11 +112,39 @@ fun CreateAdminPage(navController: NavController) {
 
                 Button(
                     onClick = {
-                        // TODO: Add functionality to create admin here
+                        if (name.isBlank() || contact.isBlank() || password.isBlank()) {
+                            resultMessage = "Semua field wajib diisi"
+                            isSuccess = false
+                            return@Button
+                        }
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val api = createPublicApiService()
+                                val request = CreateAdminRequest(
+                                    whatsappNumber = contact,
+                                    name = name,
+                                    email = contact,
+                                    password = password
+                                )
+                                val response = api.createAdmin(request)
+
+                                if (response.isSuccessful) {
+                                    resultMessage = "Admin berhasil dibuat"
+                                    isSuccess = true
+                                } else {
+                                    resultMessage = "Gagal membuat admin: ${response.code()}"
+                                    isSuccess = false
+                                }
+                            } catch (e: Exception) {
+                                resultMessage = "Error: ${e.localizedMessage}"
+                                isSuccess = false
+                            }
+                        }
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 32.dp),
+                        .width(130.dp)
+                        .align(Alignment.CenterHorizontally),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6A8695),
                         contentColor = Color(0xFFEEEECF)
@@ -135,6 +172,38 @@ fun CreateAdminPage(navController: NavController) {
             ) {
                 Text("Back")
             }
+        }
+
+        if (resultMessage != null) {
+            AlertDialog(
+                onDismissRequest = { resultMessage = null },
+                confirmButton = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Button(
+                            onClick = { resultMessage = null },
+                            modifier = Modifier.width(130.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
+                            shape = RoundedCornerShape(30.dp)
+                        ) {
+                            Text("OK", color = Color.White)
+                        }
+                    }
+                },
+                title = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (isSuccess) "Sukses" else "Gagal",
+                            color = if (isSuccess) Color.Green else Color.Red
+                        )
+                    }
+                },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(resultMessage!!, color = Color.White)
+                    }
+                },
+                containerColor = Color(0xFF1F2E43)
+            )
         }
     }
 }

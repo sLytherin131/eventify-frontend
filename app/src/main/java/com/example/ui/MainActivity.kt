@@ -81,9 +81,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // PERSONAL ADMIN SCREEN
-                    composable("personal_admin") {
+                    composable("personal_admin/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
                         PersonalAdminScreen(
                             navController = navController,
+                            jwtToken = token,
                             onLogout = {
                                 loginViewModel.logout()
                                 navController.navigate("login") {
@@ -94,17 +96,20 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // ✅ CREATE ADMIN SCREEN
-                    composable("create_admin") {
-                        CreateAdminPage(navController = navController)
+                    composable("create_admin/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        CreateAdminPage(navController, token)
                     }
 
                     // ADD MEMBER PAGE
-                    composable("add_member") {
-                        AddMemberPage(navController = navController)
+                    composable("add_member/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        AddMemberPage(navController, jwtToken = token)
                     }
 
-                    composable("create_event") {
-                        CreateEventScreen(navController)
+                    composable("create_event/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        CreateEventScreen(navController = navController, jwtToken = token)
                     }
 
                     composable("chart_page") {
