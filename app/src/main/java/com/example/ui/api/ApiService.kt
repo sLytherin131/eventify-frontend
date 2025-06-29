@@ -1,5 +1,6 @@
 package com.example.api
 
+import com.example.ui.MemberResponse
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -33,6 +34,54 @@ data class CreateAdminRequest(
     val password: String
 )
 
+data class CreateEventRequest(
+    val name: String,
+    val description: String,
+    val startTime: Long,
+    val endTime: Long,
+    val eventTasks: List<EventTask>,
+    val eventMembers: List<EventMember>
+)
+
+data class EventTask(
+    val description: String,
+    val taskType: String,
+    val createdAt: Long
+)
+
+data class EventMember(
+    val memberWhatsapp: String
+)
+
+data class EventResponse(
+    val id: Int,
+    val name: String,
+    val description: String?,
+    val startTime: Long,
+    val endTime: Long,
+    val eventTasks: List<EventTask>,
+    val eventMembers: List<EventMember> // ⬅️ TAMBAH INI!
+)
+
+data class CreateEventResponse(
+    val id: String
+)
+
+data class EventWithDetailsResponse(
+    val event: EventResponse,
+    val tasks: List<EventTask>,
+    val members: List<EventMember>
+)
+
+data class Event(
+    val id: Int,
+    val name: String,
+    val description: String?,
+    val startTime: Long,
+    val endTime: Long,
+    val createdBy: String
+)
+
 interface ApiService {
     // Login endpoint
     @POST("/admin/login")
@@ -50,6 +99,18 @@ interface ApiService {
 
     @POST("admin")
     suspend fun createAdmin(@Body request: CreateAdminRequest): Response<Unit>
+
+    @GET("members")
+    suspend fun getMembers(): List<MemberResponse>
+
+    @POST("/events")
+    suspend fun createEvent(@Body body: CreateEventRequest): Response<CreateEventResponse>
+
+    @GET("events/{id}")
+    suspend fun getEventById(@Path("id") id: String): Response<EventWithDetailsResponse>
+
+    @GET("/events")
+    suspend fun getEvents(): List<EventWithDetailsResponse>
 }
 
 // Fungsi untuk membuat ApiService dengan token
@@ -81,4 +142,11 @@ fun createPublicApiService(): ApiService {
 
     return retrofit.create(ApiService::class.java)
 }
+
+fun String?.truncate(maxLength: Int): String {
+    return if (this == null) "-"
+    else if (this.length > maxLength) this.take(maxLength) + "..."
+    else this
+}
+
 

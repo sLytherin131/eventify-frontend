@@ -17,12 +17,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.app.R
+import com.example.api.EventWithDetailsResponse
+import com.example.api.createApiService
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import com.example.utils.truncate
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.google.accompanist.pager.*
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomePageScreen(
     navController: NavController,
@@ -34,6 +47,8 @@ fun HomePageScreen(
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
 
+    val pagerState = rememberPagerState()
+
     val items = listOf("Home", "List", "Add", "Chart", "Personal")
     val icons = listOf(
         Icons.Default.Home,
@@ -44,6 +59,22 @@ fun HomePageScreen(
     )
     var selectedIndex by remember { mutableStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    var upcomingEvents by remember { mutableStateOf<List<EventWithDetailsResponse>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        val api = createApiService(jwtToken)
+        coroutineScope.launch {
+            try {
+                val allEvents = api.getEvents()
+                val now = System.currentTimeMillis()
+                upcomingEvents = allEvents.filter { it.event.endTime >= now }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     Scaffold(
         backgroundColor = backgroundColor,
@@ -70,11 +101,11 @@ fun HomePageScreen(
         floatingActionButton = {
             Box(
                 modifier = Modifier
-                    .padding(end = 10.dp, bottom = 10.dp)
+                    .padding(end = 5.dp, bottom = 5.dp)
                     .size(56.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(color = navBarColor)
-                    .clickable { navController.navigate("calendar") },
+                    .clickable { navController.navigate("calendar/$jwtToken") },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -114,9 +145,9 @@ fun HomePageScreen(
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
-                                        1 -> navController.navigate("list_event")
+                                        1 -> navController.navigate("list_event/$jwtToken")
                                         2 -> navController.navigate("create_event/$jwtToken")
-                                        3 -> navController.navigate("chart_page")
+                                        3 -> navController.navigate("chart_page/$jwtToken")
                                         4 -> navController.navigate("personal_admin/${jwtToken}")
                                     }
                                 },
@@ -137,16 +168,152 @@ fun HomePageScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 75.dp) // Tambahan untuk menghindari bentrok FAB
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            val dayFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val now = System.currentTimeMillis()
 
+            // Urutkan: sedang berlangsung dulu, baru akan datang, berdasarkan waktu mulai
+            val sortedEvents = upcomingEvents.sortedWith(
+                compareBy<EventWithDetailsResponse> {
+                    when (now) {
+                        in it.event.startTime..it.event.endTime -> 0 // sedang berlangsung
+                        else -> 1 // belum dimulai
+                    }
+                }.thenBy { it.event.startTime }
+            )
+
+            if (sortedEvents.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HorizontalPager(
+                        count = sortedEvents.size,
+                        state = pagerState,
+                        contentPadding = PaddingValues(horizontal = 0.dp), // Sebelumnya: 16.dp atau 32.dp
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(170.dp)
+                    ) { page ->
+                        val ev = sortedEvents[page]
+                        val start = Date(ev.event.startTime)
+                        val end = Date(ev.event.endTime)
+                        val isPast = now > ev.event.endTime
+
+                        Card(
+                            backgroundColor = Color(0xFF243447),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = 8.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 3.dp) // atau bisa 8.dp kalau ingin sedikit jarak di dalam pager
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = ev.event.name,
+                                    color = Color(0xFFEEEECF),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = "${dayFormat.format(start)} - ${timeFormat.format(start)}\n${dayFormat.format(end)} - ${timeFormat.format(end)}",
+                                    color = Color(0xFFEEEECF),
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = ev.event.description?.truncate(60) ?: "-",
+                                    color = Color(0xFFEEEECF),
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Justify,
+                                    maxLines = 2
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "More",
+                                        color = Color.White,
+                                        modifier = Modifier.clickable {
+                                            navController.navigate("event_detail/$jwtToken/${ev.event.id}")
+                                        }
+                                    )
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(onClick = {
+                                            navController.navigate("create_event/$jwtToken/${ev.event.id}")
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit",
+                                                tint = Color.White
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clip(CircleShape)
+                                                .background(if (isPast) Color(0xFF2ECC71) else Color.Gray),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (isPast) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = "Done",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    HorizontalPagerIndicator(
+                        pagerState = pagerState,
+                        modifier = Modifier.padding(4.dp),
+                        activeColor = Color.White,
+                        inactiveColor = Color.LightGray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Card Task Personal (tetap di bawah, task list scroll sendiri)
             Card(
                 backgroundColor = cardColor,
                 shape = RoundedCornerShape(12.dp),
                 elevation = 8.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(310.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -179,30 +346,40 @@ fun HomePageScreen(
                             }
                         }
 
-                        taskViewModel.tasks.forEach { task ->
-                            val typeColor = getTypeColor(task.taskType)
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = "Task Icon",
-                                    tint = typeColor
-                                )
-                                Text(
-                                    text = task.description,
-                                    color = typeColor,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(start = 8.dp)
-                                )
-                                IconButton(onClick = { taskViewModel.deleteTask(task.id) }) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = lightCream
-                                    )
+                        val scrollState = rememberScrollState()
+
+                        Box(
+                            modifier = Modifier
+                                .height(220.dp) // atau 230.dp agar cukup untuk 4 item
+                                .verticalScroll(scrollState)
+                        ) {
+                        Column {
+                                taskViewModel.tasks.forEach { task ->
+                                    val typeColor = getTypeColor(task.taskType)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = "Task Icon",
+                                            tint = typeColor
+                                        )
+                                        Text(
+                                            text = task.description,
+                                            color = typeColor,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(start = 8.dp)
+                                        )
+                                        IconButton(onClick = { taskViewModel.deleteTask(task.id) }) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Delete",
+                                                tint = lightCream
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -222,3 +399,4 @@ fun HomePageScreen(
         )
     }
 }
+

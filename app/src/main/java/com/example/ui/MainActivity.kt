@@ -71,13 +71,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // EVENT LIST SCREEN
-                    composable("list_event") {
-                        ListEventScreen(navController = navController)
+                    composable("list_event/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        ListEventScreen(navController = navController, jwtToken = token)
                     }
 
                     // CALENDAR SCREEN
-                    composable("calendar") {
-                        CalendarPage(navController = navController)
+                    composable("calendar/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        CalendarPage(navController = navController, jwtToken = token)
                     }
 
                     // PERSONAL ADMIN SCREEN
@@ -112,8 +114,15 @@ class MainActivity : ComponentActivity() {
                         CreateEventScreen(navController = navController, jwtToken = token)
                     }
 
-                    composable("chart_page") {
-                        ChartPage(navController = navController)
+                    composable("chart_page/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        ChartPage(navController = navController, jwtToken = token)
+                    }
+
+                    composable("event_detail/{token}/{eventId}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token")
+                        val eventId = backStackEntry.arguments?.getString("eventId")
+                        EventDetailsPage(navController, token ?: "", eventId ?: "")
                     }
 
                 }

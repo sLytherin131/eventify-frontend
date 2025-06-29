@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("android")
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 android {
@@ -55,6 +56,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.6")
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation ("androidx.navigation:navigation-compose:2.7.5")
+    implementation("androidx.compose.ui:ui-text:1.6.6")
 
     // Lifecycle dan ViewModel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -65,6 +67,7 @@ dependencies {
 
     implementation("io.ktor:ktor-client-core:2.3.4")
     implementation("io.ktor:ktor-client-cio:2.3.4") // atau engine yang kamu pakai
+    implementation("io.ktor:ktor-client-android:2.3.4")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
 
@@ -77,6 +80,9 @@ dependencies {
     // Retrofit + Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 
     // Tooling support (Preview & Debug)
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.6")

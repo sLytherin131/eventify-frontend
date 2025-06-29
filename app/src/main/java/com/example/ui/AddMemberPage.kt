@@ -29,9 +29,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import retrofit2.Response
-
-data class MemberResponse(val whatsappNumber: String, val name: String)
-data class MemberRequest(val whatsappNumber: String, val name: String)
+import com.example.ui.MemberResponse
+import com.example.ui.MemberRequest
 
 interface MemberApi {
     @GET("/members")

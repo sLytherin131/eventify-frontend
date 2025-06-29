@@ -2,10 +2,12 @@ package com.example.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import android.widget.TimePicker
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -23,10 +25,55 @@ import androidx.navigation.NavController
 import com.example.app.R
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.launch
+import com.example.api.createApiService
+import com.example.api.CreateEventRequest
+import com.example.api.EventTask
+import com.example.api.EventMember
+import com.example.ui.MemberResponse
+import com.example.ui.MemberApi
 
 enum class TaskType {
     NORMAL, URGENT
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @Composable
 fun CreateEventScreen(
@@ -37,11 +84,28 @@ fun CreateEventScreen(
     val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
+    val api = remember { createApiService(jwtToken) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault())
+    val nowStr = formatter.format(Date())
+
+    var members by remember { mutableStateOf<List<MemberResponse>>(emptyList()) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        try {
+            members = api.getMembers()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("CreateEvent", "Error posting event: ${e.message}")
+        }
+    }
 
     var eventName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var timeStart by remember { mutableStateOf("Sun, 20 April 2025 09:30") }
-    var timeEnd by remember { mutableStateOf("Sun, 20 April 2025 12:00") }
+    var timeStart by remember { mutableStateOf(nowStr) }
+    var timeEnd by remember { mutableStateOf(nowStr) }
     var searchMember by remember { mutableStateOf("") }
     var selectedIndex by remember { mutableStateOf(2) }
     var showEditTaskDialog by remember { mutableStateOf(false) }
@@ -52,9 +116,15 @@ fun CreateEventScreen(
     val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Add, Icons.Default.PieChart, Icons.Default.Person)
     val items = listOf("Home", "List", "Create", "Settings", "Account")
 
+    val filteredMembers = members.filter {
+        it.name.contains(searchQuery, ignoreCase = true)
+    }
+
     val dummyMembers = remember {
         mutableStateListOf("Name - Whatsapp Number")
     }
+
+    val eventMembers = remember { mutableStateListOf<MemberResponse>() }
 
     val dummyTasks = remember {
         mutableStateListOf<Pair<String, TaskType>>()
@@ -63,8 +133,6 @@ fun CreateEventScreen(
     var showTaskDialog by remember { mutableStateOf(false) }
     var newTaskMemo by remember { mutableStateOf("") }
     var newTaskType by remember { mutableStateOf(TaskType.NORMAL) }
-
-    val context = LocalContext.current
 
     fun pickDateTime(onPicked: (String) -> Unit) {
         val calendar = Calendar.getInstance()
@@ -75,6 +143,53 @@ fun CreateEventScreen(
                 onPicked(date)
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    fun parseDateTimeToMillis(dateStr: String): Long {
+        val sdf = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault())
+        return sdf.parse(dateStr)?.time ?: System.currentTimeMillis()
+    }
+
+    fun postEvent() {
+        coroutineScope.launch {
+            try {
+                val startMillis = parseDateTimeToMillis(timeStart)
+                val endMillis = parseDateTimeToMillis(timeEnd)
+
+                val eventTasks = dummyTasks.map { task ->
+                    EventTask(
+                        description = task.first,
+                        taskType = task.second.name.lowercase(),
+                        createdAt = System.currentTimeMillis()
+                    )
+                }
+
+                val eventMembersBody = eventMembers.map {
+                    EventMember(memberWhatsapp = it.whatsappNumber)
+                }
+
+                val requestBody = CreateEventRequest(
+                    name = eventName,
+                    description = description,
+                    startTime = parseDateTimeToMillis(timeStart),
+                    endTime = parseDateTimeToMillis(timeEnd),
+                    eventTasks = eventTasks,
+                    eventMembers = eventMembersBody
+                )
+
+                val response = api.createEvent(requestBody)
+                if (response.isSuccessful) {
+                    val createdEvent = response.body()
+                    val eventId = createdEvent?.id ?: return@launch
+                    navController.navigate("event_detail/$jwtToken/$eventId")
+                } else {
+                    Log.e("CreateEvent", "Failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("CreateEvent", "Error: ${e.message}")
+            }
+        }
     }
 
     Scaffold(
@@ -118,11 +233,11 @@ fun CreateEventScreen(
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
-                                        0 -> navController.navigate("home")
-                                        1 -> navController.navigate("list_event")
-                                        2 -> navController.navigate("create_event")
-                                        3 -> navController.navigate("chart_page")
-                                        4 -> navController.navigate("personal_admin")
+                                        0 -> navController.navigate("home/$jwtToken")
+                                        1 -> navController.navigate("list_event/$jwtToken")
+                                        2 -> navController.navigate("create_event/$jwtToken")
+                                        3 -> navController.navigate("chart_page/$jwtToken")
+                                        4 -> navController.navigate("personal_admin/$jwtToken")
                                     }
                                 },
                             contentAlignment = Alignment.Center
@@ -194,33 +309,70 @@ fun CreateEventScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Add Member:", color = lightCream, modifier = Modifier.weight(1f))
+                            Text("Add Member:", color = lightCream)
+
                             OutlinedTextField(
-                                value = searchMember,
-                                onValueChange = { searchMember = it },
-                                placeholder = { Text("Search...", fontSize = 12.sp, color = Color.LightGray) },
-                                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = lightCream) },
-                                modifier = Modifier.weight(2f),
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text("Search member...", fontSize = 12.sp, color = Color.LightGray) },
+                                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) },
+                                modifier = Modifier.fillMaxWidth(),
                                 colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White)
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+// ✅ Pindahkan LazyColumn keluar Row di bawah ini
+                        if (searchQuery.isNotBlank()) {
+                            if (filteredMembers.isNotEmpty()) {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 150.dp)
+                                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(8.dp))
+                                ) {
+                                    items(filteredMembers) { member ->
+                                        Text(
+                                            text = "${member.name} (${member.whatsappNumber})",
+                                            color = Color.White,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    if (!eventMembers.contains(member)) {
+                                                        eventMembers.add(member)
+                                                    }
+                                                    searchQuery = "" // Clear query agar dropdown hilang
+                                                }
+                                                .padding(8.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = "No results found",
+                                    color = Color.LightGray,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
 
+// ✅ Lanjut komponen Card daftar member
                         Card(backgroundColor = Color.White, modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(8.dp)) {
                                 Text("Members", color = Color.Black, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
                                 Spacer(modifier = Modifier.height(4.dp))
-                                dummyMembers.forEachIndexed { index, member ->
+                                eventMembers.forEachIndexed { index, member ->
                                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                                        Text("• $member", modifier = Modifier.weight(1f))
-                                        IconButton(onClick = { dummyMembers.removeAt(index) }) {
+                                        Text("• ${member.name} (${member.whatsappNumber})", modifier = Modifier.weight(1f))
+                                        IconButton(onClick = { eventMembers.removeAt(index) }) {
                                             Icon(Icons.Default.Close, contentDescription = "Remove")
                                         }
                                     }
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -272,7 +424,7 @@ fun CreateEventScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Button(
-                            onClick = { /* Create logic */ },
+                            onClick = { postEvent() },
                             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A8695), contentColor = Color.White),
                             modifier = Modifier.align(Alignment.CenterHorizontally).width(130.dp),
                             shape = RoundedCornerShape(50)

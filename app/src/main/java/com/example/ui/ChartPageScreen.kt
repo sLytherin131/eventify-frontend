@@ -25,29 +25,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.app.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ui.TaskViewModel
+import com.example.ui.TaskViewModelFactory
+import java.util.Calendar
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
-fun ChartPage(navController: NavController) {
+fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: TaskViewModel = viewModel(factory = TaskViewModelFactory(jwtToken))) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
 
-    val pieData = listOf(
-        "Personal" to 6f,
-        "Work" to 17f,
-        "Urgent" to 2f
-    )
-
-    val barData = listOf(
-        "Mon" to 0,
-        "Tue" to 3,
-        "Wed" to 8,
-        "Thu" to 0,
-        "Fri" to 0,
-        "Sat" to 5,
-        "Sun" to 7
-    )
+    // sudah digantikan oleh `pieData` dari atas
 
     val pieColors = listOf(Color(0xFFB5E48C), Color(0xFFFFF59D), Color(0xFFE57373))
     val barColor = Color(0xFF8BF4FF)
@@ -56,6 +50,74 @@ fun ChartPage(navController: NavController) {
 
     val items = listOf("Home", "List", "Add", "Chart", "Personal")
     val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Add, Icons.Default.PieChart, Icons.Default.Person)
+
+    val now = Calendar.getInstance()
+    val currentMonth = now.get(Calendar.MONTH)
+    val currentYear = now.get(Calendar.YEAR)
+
+    val tasksThisMonth = taskViewModel.tasks.filter {
+        val taskDate = it.createdAt?.let { ts ->
+            // createdAt harus bertipe Long atau ISO string
+            Date(ts)
+        } ?: return@filter false
+        val cal = Calendar.getInstance().apply { time = taskDate }
+        cal.get(Calendar.MONTH) == currentMonth && cal.get(Calendar.YEAR) == currentYear
+    }
+
+    val eventViewModel: EventViewModel = viewModel(factory = EventViewModelFactory(jwtToken))
+// Hitung jumlah per tipe
+    val taskTypeCounts = tasksThisMonth.groupingBy { it.taskType }.eachCount()
+
+    val pieData = listOf(
+        "Personal" to (taskTypeCounts["Personal"] ?: 0).toFloat(),
+        "Work" to (taskTypeCounts["Work"] ?: 0).toFloat(),
+        "Urgent" to (taskTypeCounts["Urgent"] ?: 0).toFloat()
+    )
+
+    val calendar = Calendar.getInstance()
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+
+    val today = calendar.time
+    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+    val weekStart = calendar.time
+
+    val barDataMap = mutableMapOf(
+        "Mon" to 0, "Tue" to 0, "Wed" to 0,
+        "Thu" to 0, "Fri" to 0, "Sat" to 0, "Sun" to 0,
+    )
+
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    for (eventWithDetails in eventViewModel.events) {
+        val eventDate = try {
+            Date(eventWithDetails.event.startTime)  // ← ambil startTime dari event
+        } catch (e: Exception) {
+            null
+        } ?: continue
+
+        if (eventDate >= weekStart && eventDate <= today) {
+            val cal = Calendar.getInstance().apply { time = eventDate }
+            val dayName = when (cal.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "Mon"
+                Calendar.TUESDAY -> "Tue"
+                Calendar.WEDNESDAY -> "Wed"
+                Calendar.THURSDAY -> "Thu"
+                Calendar.FRIDAY -> "Fri"
+                Calendar.SATURDAY -> "Sat"
+                Calendar.SUNDAY -> "Sun"
+                else -> ""
+            }
+            val memberCount = eventWithDetails.members.size  // ← ambil dari field `members`
+            barDataMap[dayName] = barDataMap[dayName]?.plus(memberCount) ?: memberCount
+        }
+    }
+
+    val barData = listOf(
+        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+    ).map { it to (barDataMap[it] ?: 0) }
 
     Scaffold(
         backgroundColor = backgroundColor,
@@ -104,11 +166,11 @@ fun ChartPage(navController: NavController) {
                                 .clickable {
                                     selectedIndex = index
                                     when (index) {
-                                        0 -> navController.navigate("home")
-                                        1 -> navController.navigate("list_event")
-                                        2 -> navController.navigate("create_event")
-                                        3 -> navController.navigate("chart_page")
-                                        4 -> navController.navigate("personal_admin")
+                                        0 -> navController.navigate("home/$jwtToken")
+                                        1 -> navController.navigate("list_event/$jwtToken")
+                                        2 -> navController.navigate("create_event/$jwtToken")
+                                        3 -> navController.navigate("chart_page/$jwtToken")
+                                        4 -> navController.navigate("personal_admin/$jwtToken")
                                     }
                                 },
                             contentAlignment = Alignment.Center

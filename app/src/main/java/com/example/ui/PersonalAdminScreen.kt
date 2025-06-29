@@ -343,7 +343,7 @@ fun PersonalAdminScreen(
             }
         }
 
-        BottomNavigationBar(navController = navController)
+        BottomNavigationBar(navController = navController, jwtToken = jwtToken)
 
         if (resultMessage != null) {
             AlertDialog(
@@ -381,7 +381,7 @@ fun PersonalAdminScreen(
 
 /* === Bottom Navigation Bar === */
 @Composable
-fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modifier) {
+fun BottomNavigationBar(navController: NavController, jwtToken: String, modifier: Modifier = Modifier) {
     val navBarColor = Color(0xFF243447)
     val lightCream = Color(0xFFEEEECF)
     var selectedIndex by remember { mutableStateOf(4) }
@@ -394,11 +394,11 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
         Icons.Default.Person
     )
     val destinations = listOf(
-        "home",
-        "list_event",
-        "create_event",
-        "chart_page",
-        "personal_admin"
+        "home/$jwtToken",
+        "list_event/$jwtToken",
+        "create_event/$jwtToken",
+        "chart_page/$jwtToken",
+        "personal_admin/$jwtToken"
     )
 
     Box(
