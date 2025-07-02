@@ -85,7 +85,7 @@ fun CalendarPage(navController: NavHostController, jwtToken: String) {
                 }
             }
 
-            val response = client.get("http://10.0.2.2:8082/events") {
+            val response = client.get("https://eventify-kerja-praktek-production.up.railway.app/events") {
                 header("Authorization", "Bearer $jwtToken")
             }.body<List<EventWrapper>>()
 

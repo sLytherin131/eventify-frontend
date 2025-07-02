@@ -45,7 +45,7 @@ class ForgotPasswordViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8082") // Ganti sesuai IP backend kamu
+        .baseUrl("https://eventify-kerja-praktek-production.up.railway.app/") // Ganti sesuai IP backend kamu
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

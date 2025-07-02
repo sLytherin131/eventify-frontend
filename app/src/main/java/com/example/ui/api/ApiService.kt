@@ -125,7 +125,7 @@ fun createApiService(jwtToken: String): ApiService {
         .build()
 
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8082")
+        .baseUrl("https://eventify-kerja-praktek-production.up.railway.app/")
         .addConverterFactory(GsonConverterFactory.create())
         .client(client)
         .build()
@@ -136,7 +136,7 @@ fun createApiService(jwtToken: String): ApiService {
 // Fungsi untuk membuat ApiService tanpa token (untuk endpoint publik seperti /admin)
 fun createPublicApiService(): ApiService {
     val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8082")
+        .baseUrl("https://eventify-kerja-praktek-production.up.railway.app/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

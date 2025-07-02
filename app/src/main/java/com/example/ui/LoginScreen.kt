@@ -58,7 +58,7 @@ class LoginViewModel : ViewModel() {
     val jwtToken: StateFlow<String?> = _jwtToken.asStateFlow()
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8082")
+        .baseUrl("https://eventify-kerja-praktek-production.up.railway.app/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Eventify"
+rootProject.name = "Eventify4"
 include(":app")
  
