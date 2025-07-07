@@ -6,10 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -24,14 +24,35 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EventifyTheme {
-                val loginSuccess by loginViewModel.loginSuccess.collectAsState()
                 val jwtToken by loginViewModel.jwtToken.collectAsState()
                 val navController = rememberNavController()
 
                 NavHost(
                     navController = navController,
-                    startDestination = if (jwtToken != null) "home" else "login"
+                    startDestination = "splash"
                 ) {
+                    // SPLASH SCREEN untuk memastikan jwtToken sudah siap
+                    composable("splash") {
+                        LaunchedEffect(jwtToken) {
+                            if (jwtToken != null) {
+                                navController.navigate("home/${jwtToken}") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate("login") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
                     // LOGIN SCREEN
                     composable("login") {
                         LoginScreen(
@@ -40,7 +61,7 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate("forgot_password")
                             },
                             onLoginSuccess = {
-                                navController.navigate("home") {
+                                navController.navigate("home/${loginViewModel.jwtToken.value}") {
                                     popUpTo("login") { inclusive = true }
                                 }
                             }
@@ -53,21 +74,9 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // HOME SCREEN
-                    composable("home") {
-                        when {
-                            jwtToken != null -> {
-                                HomePageScreen(navController = navController, jwtToken = jwtToken!!)
-                            }
-                            else -> {
-                                // Tampilkan indikator loading agar tidak langsung navigasi ulang
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
+                    composable("home/{token}") { backStackEntry ->
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        HomePageScreen(navController = navController, jwtToken = token)
                     }
 
                     // EVENT LIST SCREEN
@@ -91,40 +100,42 @@ class MainActivity : ComponentActivity() {
                             onLogout = {
                                 loginViewModel.logout()
                                 navController.navigate("login") {
-                                    popUpTo("home") { inclusive = true }
+                                    popUpTo("home/{token}") { inclusive = true }
                                 }
                             }
                         )
                     }
 
-                    // ✅ CREATE ADMIN SCREEN
+                    // CREATE ADMIN SCREEN
                     composable("create_admin/{token}") { backStackEntry ->
                         val token = backStackEntry.arguments?.getString("token") ?: ""
                         CreateAdminPage(navController, token)
                     }
 
-                    // ADD MEMBER PAGE
+                    // ADD MEMBER SCREEN
                     composable("add_member/{token}") { backStackEntry ->
                         val token = backStackEntry.arguments?.getString("token") ?: ""
                         AddMemberPage(navController, jwtToken = token)
                     }
 
+                    // CREATE EVENT SCREEN
                     composable("create_event/{token}") { backStackEntry ->
                         val token = backStackEntry.arguments?.getString("token") ?: ""
                         CreateEventScreen(navController = navController, jwtToken = token)
                     }
 
+                    // CHART PAGE
                     composable("chart_page/{token}") { backStackEntry ->
                         val token = backStackEntry.arguments?.getString("token") ?: ""
                         ChartPage(navController = navController, jwtToken = token)
                     }
 
+                    // EVENT DETAIL SCREEN
                     composable("event_detail/{token}/{eventId}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token")
-                        val eventId = backStackEntry.arguments?.getString("eventId")
-                        EventDetailsPage(navController, token ?: "", eventId ?: "")
+                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                        val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                        EventDetailsPage(navController, token, eventId)
                     }
-
                 }
             }
         }

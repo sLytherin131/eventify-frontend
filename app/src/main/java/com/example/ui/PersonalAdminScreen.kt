@@ -74,7 +74,7 @@ fun provideAdminApi(token: String): AdminApi {
         .build()
 
     val retrofit = Retrofit.Builder()
-        .baseUrl("https://eventify-kerja-praktek-production.up.railway.app/")
+        .baseUrl("https://eventify-kerja-praktek-copy-production.up.railway.app/")
         .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
