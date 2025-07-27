@@ -109,7 +109,7 @@ class AdminViewModel(private val token: String) : ViewModel() {
                 name = response.name
                 whatsapp = response.whatsappNumber
                 email = response.email
-                password = response.password
+                password = "" // Kosongkan, agar tidak kirim hash
             } catch (_: Exception) {}
         }
     }
