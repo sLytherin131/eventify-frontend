@@ -96,7 +96,7 @@ fun CalendarPage(navController: NavHostController, jwtToken: String) {
                 date.month == currentMonth.month && date.year == currentMonth.year
             }
 
-            eventList = filtered
+            eventList = filtered.sortedByDescending { it.startTime }
 
         } catch (e: Exception) {
             println("Error fetch events: ${e.localizedMessage}")

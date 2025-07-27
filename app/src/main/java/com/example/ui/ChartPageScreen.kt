@@ -80,9 +80,16 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
     calendar.set(Calendar.SECOND, 0)
     calendar.set(Calendar.MILLISECOND, 0)
 
-    val today = calendar.time
-    calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+    calendar.firstDayOfWeek = Calendar.MONDAY
+    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
     val weekStart = calendar.time
+
+    calendar.add(Calendar.DAY_OF_WEEK, 6)
+    calendar.set(Calendar.HOUR_OF_DAY, 23)
+    calendar.set(Calendar.MINUTE, 59)
+    calendar.set(Calendar.SECOND, 59)
+    calendar.set(Calendar.MILLISECOND, 999)
+    val weekEnd = calendar.time
 
     val barDataMap = mutableMapOf(
         "Mon" to 0, "Tue" to 0, "Wed" to 0,
@@ -98,7 +105,7 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
             null
         } ?: continue
 
-        if (eventDate >= weekStart && eventDate <= today) {
+        if (eventDate >= weekStart && eventDate <= weekEnd) {
             val cal = Calendar.getInstance().apply { time = eventDate }
             val dayName = when (cal.get(Calendar.DAY_OF_WEEK)) {
                 Calendar.MONDAY -> "Mon"
@@ -277,11 +284,21 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // 👇 Tambahkan di sini
+                    Text(
+                        text = "Periode: ${dateFormat.format(weekStart)} - ${dateFormat.format(weekEnd)}",
+                        color = lightCream,
+                        fontSize = 14.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Sudah ada sebelumnya
                     Text("Weekly Event Participant", color = lightCream, fontSize = 16.sp)
                     Canvas(modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .padding(top = 16.dp)) {
+                        .padding(start = 15.dp, bottom = 25.dp, top = 16.dp)) {
                         val barWidth = size.width / (barData.size * 2)
                         val maxVal = 20f
 
@@ -292,6 +309,24 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                             end = Offset(0f, size.height),
                             strokeWidth = 2f
                         )
+
+                        // Tambahkan label angka Y (0 - 20 dengan interval 5)
+                        val step = 5
+                        val labelPaint = android.graphics.Paint().apply {
+                            color = android.graphics.Color.WHITE
+                            textSize = 28f
+                            textAlign = android.graphics.Paint.Align.RIGHT
+                        }
+
+                        for (i in 0..20 step step) {
+                            val yPos = size.height - (i / 20f) * size.height
+                            drawContext.canvas.nativeCanvas.drawText(
+                                i.toString(),
+                                -8f, // posisi X, negatif agar di kiri sumbu Y
+                                yPos + 10f, // posisi Y
+                                labelPaint
+                            )
+                        }
 
                         // Draw X Axis
                         drawLine(
@@ -318,7 +353,7 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                             drawContext.canvas.nativeCanvas.drawText(
                                 label,
                                 x + barWidth / 2 - 24,
-                                size.height + 24,
+                                size.height + 30,
                                 android.graphics.Paint().apply {
                                     color = android.graphics.Color.WHITE
                                     textSize = 32f

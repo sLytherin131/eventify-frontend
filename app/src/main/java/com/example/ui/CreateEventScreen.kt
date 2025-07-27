@@ -59,7 +59,9 @@ fun CreateEventScreen(
     val api = remember { createApiService(jwtToken) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault())
+    val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale("id", "ID")).apply {
+        timeZone = TimeZone.getTimeZone("Asia/Jakarta")
+    }
     val nowStr = formatter.format(Date())
 
     var members by remember { mutableStateOf<List<MemberResponse>>(emptyList()) }
@@ -100,18 +102,20 @@ fun CreateEventScreen(
             try {
                 val response = api.getEventById(editId)
                 if (response.isSuccessful) {
-                    val data = response.body()?.event
+                    val data = response.body()
                     data?.let {
-                        eventName = it.name
-                        description = it.description ?: ""
-                        timeStart = formatter.format(Date(it.startTime))
-                        timeEnd = formatter.format(Date(it.endTime))
+                        eventName = it.event.name
+                        description = it.event.description ?: ""
+                        timeStart = formatter.format(Date(it.event.startTime))
+                        timeEnd = formatter.format(Date(it.event.endTime))
+
                         eventMembers.clear()
-                        eventMembers.addAll(it.eventMembers.mapNotNull { m ->
+                        eventMembers.addAll(it.members.mapNotNull { m ->
                             members.find { mem -> mem.whatsappNumber == m.memberWhatsapp }
                         })
+
                         dummyTasks.clear()
-                        dummyTasks.addAll(it.eventTasks.map { t ->
+                        dummyTasks.addAll(it.tasks.map { t ->
                             Pair(t.description, if (t.taskType == "urgent") TaskType.URGENT else TaskType.NORMAL)
                         })
                     }
@@ -153,11 +157,13 @@ fun CreateEventScreen(
 
                 if (!editId.isNullOrEmpty()) {
                     val response = api.updateEvent(editId.toInt(), requestBody)
+
                     if (response.isSuccessful) {
-                        Log.i("CreateEvent", "Updated successfully")
-                        navController.navigate("list_event/$jwtToken") // atau kemana saja
+                        Log.d("CreateEvent", "Update response: ${response.body()?.string()}")
+                        navController.navigate("event_detail/$jwtToken/$editId")
                     } else {
-                        Log.e("CreateEvent", "Failed to update: ${response.errorBody()?.string()}")
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("CreateEvent", "Update failed: $errorBody")
                     }
                 } else {
                     val response = api.createEvent(requestBody)

@@ -269,7 +269,7 @@ fun HomePageScreen(
 
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             IconButton(onClick = {
-                                                navController.navigate("create_event/$jwtToken/${ev.event.id}")
+                                                navController.navigate("create_event/$jwtToken?editId=${ev.event.id}")
                                             }) {
                                                 Icon(
                                                     imageVector = Icons.Default.Edit,
