@@ -83,9 +83,7 @@ fun HomePageScreen(
                 elevation = 4.dp
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 1.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

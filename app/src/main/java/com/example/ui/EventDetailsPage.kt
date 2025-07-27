@@ -28,6 +28,7 @@ import com.example.app.R
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun EventDetailsPage(
@@ -46,6 +47,9 @@ fun EventDetailsPage(
     val red = Color(0xFF9B2C40)
 
     var event by remember { mutableStateOf<EventResponse?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
+
     var isExpired by remember { mutableStateOf(false) }
     var loadFailed by remember { mutableStateOf(false) }
 
@@ -99,6 +103,55 @@ fun EventDetailsPage(
             }
         }
     ) { padding ->
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = {
+                    Text("Delete Event", fontWeight = FontWeight.Bold, color = Color.Red)
+                },
+                text = {
+                    Text("Are you sure you want to delete this event?", color = Color.White)
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                isDeleting = true
+                                try {
+                                    val deleteResponse = api.deleteEvent(eventId.toInt())
+                                    if (deleteResponse.isSuccessful) {
+                                        navController.navigate("list_event/$jwtToken") {
+                                            popUpTo("event_details/$eventId") { inclusive = true }
+                                        }
+                                    } else {
+                                        // Optional: Show Snackbar atau Dialog error
+                                    }
+                                } catch (e: Exception) {
+                                    // Optional: Show Snackbar atau Dialog error
+                                } finally {
+                                    isDeleting = false
+                                    showDeleteDialog = false
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                    ) {
+                        Text("Yes", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { showDeleteDialog = false },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
+                    ) {
+                        Text("No", color = Color.White)
+                    }
+                },
+                backgroundColor = Color(0xFF1F2E43),
+                contentColor = Color.White
+            )
+        }
+
         if (loadFailed) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Failed to load event. Please try again.", color = Color.White)
@@ -221,13 +274,31 @@ fun EventDetailsPage(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Button(
-                        onClick = { navController.navigate("list_event/$jwtToken") },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = cardColor, contentColor = Color.White),
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier.width(130.dp)
-                    ) {
-                        Text("Back")
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { navController.navigate("list_event/$jwtToken") },
+                            colors = ButtonDefaults.buttonColors(backgroundColor = cardColor, contentColor = Color.White),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.width(130.dp)
+                        ) {
+                            Text("Back")
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Button(
+                            onClick = { showDeleteDialog = true },
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF9B2C40), contentColor = Color.White),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.width(130.dp),
+                            enabled = !isDeleting
+                        ) {
+                            if (isDeleting) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                            } else {
+                                Text("Delete")
+                            }
+                        }
                     }
                 }
             } ?: run {

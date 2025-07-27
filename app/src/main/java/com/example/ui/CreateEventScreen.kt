@@ -31,59 +31,31 @@ import com.example.api.CreateEventRequest
 import com.example.api.EventTask
 import com.example.api.EventMember
 import com.example.ui.MemberResponse
-import com.example.ui.MemberApi
 
 enum class TaskType {
     NORMAL, URGENT
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @Composable
 fun CreateEventScreen(
     navController: NavController,
-    jwtToken: String
+    jwtToken: String,
+    editId: String? = null
 ) {
     val backgroundColor = Color(0xFF92B0BC)
     val cardColor = Color(0xFF1F2E43)
     val lightCream = Color(0xFFEEEECF)
     val navBarColor = Color(0xFF243447)
+
+    val icons = listOf(
+        Icons.Default.Home,
+        Icons.Default.List,
+        Icons.Default.Add,
+        Icons.Default.PieChart,
+        Icons.Default.Person
+    )
+    val items = listOf("Home", "List", "Create", "Chart", "Profile")
+
     val api = remember { createApiService(jwtToken) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -97,8 +69,7 @@ fun CreateEventScreen(
         try {
             members = api.getMembers()
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("CreateEvent", "Error posting event: ${e.message}")
+            Log.e("CreateEvent", "Fetch members error: ${e.message}")
         }
     }
 
@@ -106,87 +77,98 @@ fun CreateEventScreen(
     var description by remember { mutableStateOf("") }
     var timeStart by remember { mutableStateOf(nowStr) }
     var timeEnd by remember { mutableStateOf(nowStr) }
-    var searchMember by remember { mutableStateOf("") }
+
     var selectedIndex by remember { mutableStateOf(2) }
     var showEditTaskDialog by remember { mutableStateOf(false) }
     var editedTaskIndex by remember { mutableStateOf(-1) }
     var editedTaskMemo by remember { mutableStateOf("") }
     var editedTaskType by remember { mutableStateOf(TaskType.NORMAL) }
 
-    val icons = listOf(Icons.Default.Home, Icons.Default.List, Icons.Default.Add, Icons.Default.PieChart, Icons.Default.Person)
-    val items = listOf("Home", "List", "Create", "Settings", "Account")
-
     val filteredMembers = members.filter {
         it.name.contains(searchQuery, ignoreCase = true)
     }
 
-    val dummyMembers = remember {
-        mutableStateListOf("Name - Whatsapp Number")
-    }
-
     val eventMembers = remember { mutableStateListOf<MemberResponse>() }
-
-    val dummyTasks = remember {
-        mutableStateListOf<Pair<String, TaskType>>()
-    }
+    val dummyTasks = remember { mutableStateListOf<Pair<String, TaskType>>() }
 
     var showTaskDialog by remember { mutableStateOf(false) }
     var newTaskMemo by remember { mutableStateOf("") }
     var newTaskType by remember { mutableStateOf(TaskType.NORMAL) }
+
+    LaunchedEffect(editId) {
+        if (!editId.isNullOrEmpty()) {
+            try {
+                val response = api.getEventById(editId)
+                if (response.isSuccessful) {
+                    val data = response.body()?.event
+                    data?.let {
+                        eventName = it.name
+                        description = it.description ?: ""
+                        timeStart = formatter.format(Date(it.startTime))
+                        timeEnd = formatter.format(Date(it.endTime))
+                        eventMembers.clear()
+                        eventMembers.addAll(it.eventMembers.mapNotNull { m ->
+                            members.find { mem -> mem.whatsappNumber == m.memberWhatsapp }
+                        })
+                        dummyTasks.clear()
+                        dummyTasks.addAll(it.eventTasks.map { t ->
+                            Pair(t.description, if (t.taskType == "urgent") TaskType.URGENT else TaskType.NORMAL)
+                        })
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("CreateEvent", "Load edit error: ${e.message}")
+            }
+        }
+    }
 
     fun pickDateTime(onPicked: (String) -> Unit) {
         val calendar = Calendar.getInstance()
         DatePickerDialog(context, { _, year, month, dayOfMonth ->
             TimePickerDialog(context, { _: TimePicker, hour: Int, minute: Int ->
                 calendar.set(year, month, dayOfMonth, hour, minute)
-                val date = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault()).format(calendar.time)
-                onPicked(date)
+                onPicked(formatter.format(calendar.time))
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     fun parseDateTimeToMillis(dateStr: String): Long {
-        val sdf = SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm", Locale.getDefault())
-        return sdf.parse(dateStr)?.time ?: System.currentTimeMillis()
+        return formatter.parse(dateStr)?.time ?: System.currentTimeMillis()
     }
 
     fun postEvent() {
         coroutineScope.launch {
             try {
-                val startMillis = parseDateTimeToMillis(timeStart)
-                val endMillis = parseDateTimeToMillis(timeEnd)
-
-                val eventTasks = dummyTasks.map { task ->
-                    EventTask(
-                        description = task.first,
-                        taskType = task.second.name.lowercase(),
-                        createdAt = System.currentTimeMillis()
-                    )
+                val eventTasks = dummyTasks.map {
+                    EventTask(it.first, it.second.name.lowercase(), System.currentTimeMillis())
                 }
-
                 val eventMembersBody = eventMembers.map {
-                    EventMember(memberWhatsapp = it.whatsappNumber)
+                    EventMember(it.whatsappNumber)
                 }
-
                 val requestBody = CreateEventRequest(
-                    name = eventName,
-                    description = description,
-                    startTime = parseDateTimeToMillis(timeStart),
-                    endTime = parseDateTimeToMillis(timeEnd),
-                    eventTasks = eventTasks,
-                    eventMembers = eventMembersBody
+                    eventName, description,
+                    parseDateTimeToMillis(timeStart), parseDateTimeToMillis(timeEnd),
+                    eventTasks, eventMembersBody
                 )
 
-                val response = api.createEvent(requestBody)
-                if (response.isSuccessful) {
-                    val createdEvent = response.body()
-                    val eventId = createdEvent?.id ?: return@launch
-                    navController.navigate("event_detail/$jwtToken/$eventId")
+                if (!editId.isNullOrEmpty()) {
+                    val response = api.updateEvent(editId.toInt(), requestBody)
+                    if (response.isSuccessful) {
+                        Log.i("CreateEvent", "Updated successfully")
+                        navController.navigate("list_event/$jwtToken") // atau kemana saja
+                    } else {
+                        Log.e("CreateEvent", "Failed to update: ${response.errorBody()?.string()}")
+                    }
                 } else {
-                    Log.e("CreateEvent", "Failed: ${response.errorBody()?.string()}")
+                    val response = api.createEvent(requestBody)
+                    if (response.isSuccessful) {
+                        val eventId = response.body()?.id ?: return@launch
+                        navController.navigate("event_detail/$jwtToken/$eventId")
+                    } else {
+                        Log.e("CreateEvent", "Failed to create: ${response.errorBody()?.string()}")
+                    }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 Log.e("CreateEvent", "Error: ${e.message}")
             }
         }

@@ -83,7 +83,6 @@ class LoginViewModel : ViewModel() {
                         val token = jsonObj.optString("token", "")
                         if (token.isNotBlank()) {
                             _jwtToken.value = token
-                            loginResult = "Login successful"
                             _loginSuccess.value = true
                         } else {
                             loginResult = "Login failed: token missing"
@@ -250,7 +249,7 @@ fun LoginScreen(
 
                         TextButton(onClick = onForgotPasswordClick) {
                             Text(
-                                text = "Lupa Password?",
+                                text = "Forgot Password?",
                                 style = MaterialTheme.typography.labelSmall.copy(color = textColor)
                             )
                         }

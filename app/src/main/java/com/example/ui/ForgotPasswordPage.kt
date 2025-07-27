@@ -43,6 +43,7 @@ class ForgotPasswordViewModel : ViewModel() {
     var newPassword by mutableStateOf("")
     var message by mutableStateOf("")
     var isLoading by mutableStateOf(false)
+    var isSuccess by mutableStateOf(false)
 
     private val retrofit = Retrofit.Builder()
         .baseUrl("https://eventify-kerja-praktek-copy-production.up.railway.app/") // Ganti sesuai IP backend kamu
@@ -56,9 +57,16 @@ class ForgotPasswordViewModel : ViewModel() {
             isLoading = true
             try {
                 val response = api.sendResetCode(ForgotPasswordRequest(identifier))
-                message = if (response.isSuccessful) "Kode berhasil dikirim" else "Gagal kirim kode"
+                if (response.isSuccessful) {
+                    message = "Verification code sent successfully"
+                    isSuccess = true
+                } else {
+                    message = "Failed to send code"
+                    isSuccess = false
+                }
             } catch (e: Exception) {
                 message = "Error: ${e.message}"
+                isSuccess = false
             }
             isLoading = false
         }
@@ -69,9 +77,16 @@ class ForgotPasswordViewModel : ViewModel() {
             isLoading = true
             try {
                 val response = api.resetPassword(ResetPasswordRequest(identifier, code, newPassword))
-                message = if (response.isSuccessful) "Password berhasil direset" else "Reset gagal"
+                if (response.isSuccessful) {
+                    message = "Password reset successfully"
+                    isSuccess = true
+                } else {
+                    message = "Failed to reset password"
+                    isSuccess = false
+                }
             } catch (e: Exception) {
                 message = "Error: ${e.message}"
+                isSuccess = false
             }
             isLoading = false
         }
@@ -87,18 +102,7 @@ fun ForgotPasswordPage(navController: NavController) {
     val cardColor = Color(0xFF1F2E43)
     val textColor = Color(0xFFFDF6D8)
     val buttonColor = Color(0xFF5D7E99)
-
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(viewModel.message) {
-        if (viewModel.message.isNotEmpty()) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar(viewModel.message)
-                viewModel.message = ""
-            }
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -225,18 +229,47 @@ fun ForgotPasswordPage(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Button(
-                        onClick = { navController.navigate("login") },
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .width(130.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = cardColor),
-                        shape = RoundedCornerShape(20.dp)
+                    TextButton(
+                        onClick = { navController.navigate("login") }
                     ) {
-                        Text("Login", color = textColor, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = "Back to Login",
+                            style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF1F2E43))
+                        )
                     }
                 }
             }
+        }
+        if (viewModel.message.isNotEmpty()) {
+            AlertDialog(
+                onDismissRequest = { viewModel.message = "" },
+                confirmButton = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Button(
+                            onClick = { viewModel.message = "" },
+                            modifier = Modifier.width(130.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
+                            shape = RoundedCornerShape(30.dp)
+                        ) {
+                            Text("OK", color = Color.White)
+                        }
+                    }
+                },
+                title = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (viewModel.isSuccess) "Success" else "Failed",
+                            color = if (viewModel.isSuccess) Color.Green else Color.Red
+                        )
+                    }
+                },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(viewModel.message, color = Color.White)
+                    }
+                },
+                containerColor = Color(0xFF1F2E43)
+            )
         }
     }
 }

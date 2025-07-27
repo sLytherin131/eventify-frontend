@@ -111,6 +111,15 @@ interface ApiService {
 
     @GET("/events")
     suspend fun getEvents(): List<EventWithDetailsResponse>
+
+    @PUT("/events/{id}")
+    suspend fun updateEvent(
+        @Path("id") id: Int,
+        @Body body: CreateEventRequest
+    ): Response<String>
+
+    @DELETE("/events/{id}")
+    suspend fun deleteEvent(@Path("id") id: Int): Response<ResponseBody>
 }
 
 // Fungsi untuk membuat ApiService dengan token

@@ -10,9 +10,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.ui.ui.theme.EventifyTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "splash"
                 ) {
-                    // SPLASH SCREEN untuk memastikan jwtToken sudah siap
+                    // SPLASH SCREEN
                     composable("splash") {
                         LaunchedEffect(jwtToken) {
                             if (jwtToken != null) {
@@ -44,7 +46,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // LOGIN SCREEN
+                    // LOGIN
                     composable("login") {
                         LoginScreen(
                             viewModel = loginViewModel,
@@ -68,73 +69,103 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // FORGOT PASSWORD SCREEN
+                    // FORGOT PASSWORD
                     composable("forgot_password") {
                         ForgotPasswordPage(navController = navController)
                     }
 
-                    // HOME SCREEN
-                    composable("home/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        HomePageScreen(navController = navController, jwtToken = token)
+                    // HOME
+                    composable("home/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        HomePageScreen(navController = navController, jwtToken = jwtToken)
                     }
 
-                    // EVENT LIST SCREEN
-                    composable("list_event/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        ListEventScreen(navController = navController, jwtToken = token)
+                    // EVENT LIST
+                    composable("list_event/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        ListEventScreen(navController = navController, jwtToken = jwtToken)
                     }
 
-                    // CALENDAR SCREEN
-                    composable("calendar/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        CalendarPage(navController = navController, jwtToken = token)
+                    // CALENDAR
+                    composable("calendar/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        CalendarPage(navController = navController, jwtToken = jwtToken)
                     }
 
-                    // PERSONAL ADMIN SCREEN
-                    composable("personal_admin/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                    // PERSONAL ADMIN
+                    composable("personal_admin/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
                         PersonalAdminScreen(
                             navController = navController,
-                            jwtToken = token,
+                            jwtToken = jwtToken,
                             onLogout = {
                                 loginViewModel.logout()
                                 navController.navigate("login") {
-                                    popUpTo("home/{token}") { inclusive = true }
+                                    popUpTo("home/{jwtToken}") { inclusive = true }
                                 }
                             }
                         )
                     }
 
-                    // CREATE ADMIN SCREEN
-                    composable("create_admin/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        CreateAdminPage(navController, token)
+                    // CREATE ADMIN
+                    composable("create_admin/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        CreateAdminPage(navController, jwtToken)
                     }
 
-                    // ADD MEMBER SCREEN
-                    composable("add_member/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        AddMemberPage(navController, jwtToken = token)
+                    // ADD MEMBER
+                    composable("add_member/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        AddMemberPage(navController, jwtToken)
                     }
 
-                    // CREATE EVENT SCREEN
-                    composable("create_event/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        CreateEventScreen(navController = navController, jwtToken = token)
+                    // CREATE / EDIT EVENT
+                    composable(
+                        route = "create_event/{jwtToken}?editId={editId}",
+                        arguments = listOf(
+                            navArgument("jwtToken") { type = NavType.StringType },
+                            navArgument("editId") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        val editId = backStackEntry.arguments?.getString("editId")
+                        CreateEventScreen(navController = navController, jwtToken = jwtToken, editId = editId)
                     }
 
                     // CHART PAGE
-                    composable("chart_page/{token}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
-                        ChartPage(navController = navController, jwtToken = token)
+                    composable("chart_page/{jwtToken}",
+                        arguments = listOf(navArgument("jwtToken") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
+                        ChartPage(navController = navController, jwtToken = jwtToken)
                     }
 
-                    // EVENT DETAIL SCREEN
-                    composable("event_detail/{token}/{eventId}") { backStackEntry ->
-                        val token = backStackEntry.arguments?.getString("token") ?: ""
+                    // EVENT DETAIL
+                    composable("event_detail/{jwtToken}/{eventId}",
+                        arguments = listOf(
+                            navArgument("jwtToken") { type = NavType.StringType },
+                            navArgument("eventId") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val jwtToken = backStackEntry.arguments?.getString("jwtToken") ?: ""
                         val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
-                        EventDetailsPage(navController, token, eventId)
+                        EventDetailsPage(navController = navController, jwtToken, eventId)
                     }
                 }
             }

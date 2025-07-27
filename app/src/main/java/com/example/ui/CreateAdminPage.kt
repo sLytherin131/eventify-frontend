@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -185,21 +186,26 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
                             shape = RoundedCornerShape(30.dp)
                         ) {
-                            Text("OK", color = Color.White)
+                            Text("Ok", color = Color.White)
                         }
                     }
                 },
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (isSuccess) "Sukses" else "Gagal",
-                            color = if (isSuccess) Color.Green else Color.Red
+                            text = if (isSuccess) "Success" else "Failed",
+                            color = if (isSuccess) Color.Green else Color.Red,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize
                         )
                     }
                 },
                 text = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(resultMessage!!, color = Color.White)
+                        Text(
+                            text = if (isSuccess) "Admin created successfully" else "Admin creation failed",
+                            color = Color.White
+                        )
                     }
                 },
                 containerColor = Color(0xFF1F2E43)

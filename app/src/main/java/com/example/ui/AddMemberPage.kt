@@ -246,14 +246,38 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
             AlertDialog(
                 onDismissRequest = { resultMessage = null },
                 confirmButton = {
-                    Button(onClick = { resultMessage = null }) {
-                        Text("OK")
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Button(
+                            onClick = { resultMessage = null },
+                            modifier = Modifier.width(130.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5D7E99)),
+                            shape = RoundedCornerShape(30.dp)
+                        ) {
+                            Text("Ok", color = Color.White)
+                        }
                     }
                 },
                 title = {
-                    Text(if (it.contains("success", true) || it.contains("created", true)) "Success" else "Failed")
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (it.contains("success", true) || it.contains("created", true)) "Success" else "Failed",
+                            color = if (it.contains("success", true) || it.contains("created", true)) Color.Green else Color.Red,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
                 },
-                text = { Text(it) },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (it.contains("success", true)) "Update successful"
+                            else if (it.contains("created", true)) "Member created"
+                            else "Update failed",
+                            color = Color.White,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                },
                 containerColor = Color(0xFF1F2E43)
             )
         }
