@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.api.CreateAdminRequest
@@ -22,6 +23,7 @@ import com.example.app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @Composable
 fun CreateAdminPage(navController: NavController, jwtToken: String) {
@@ -62,9 +64,10 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
             ) {
                 Text(
                     text = "Create Admin",
-                    color = Color(0xFFEEEECF),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 11.dp)
                 )
 
                 val inputModifier = Modifier
@@ -87,15 +90,17 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                     label = { Text("Name") },
                     modifier = inputModifier,
                     singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     colors = whiteTextFieldColors
                 )
 
                 OutlinedTextField(
                     value = contact,
                     onValueChange = { contact = it },
-                    label = { Text("Email or Whatsapp Number") },
+                    label = { Text("Email or WhatsApp Number") },
                     modifier = inputModifier,
                     singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     colors = whiteTextFieldColors
                 )
 
@@ -105,16 +110,17 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                     label = { Text("Password") },
                     modifier = inputModifier,
                     singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     colors = whiteTextFieldColors
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(11.dp))
 
                 Button(
                     onClick = {
                         if (name.isBlank() || contact.isBlank() || password.isBlank()) {
-                            resultMessage = "Semua field wajib diisi"
+                            resultMessage = "All fields are required."
                             isSuccess = false
                             return@Button
                         }
@@ -131,14 +137,23 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                                 val response = api.createAdmin(request)
 
                                 if (response.isSuccessful) {
-                                    resultMessage = "Admin berhasil dibuat"
+                                    resultMessage = "Admin '$name' with contact '$contact' has been successfully created."
                                     isSuccess = true
                                 } else {
-                                    resultMessage = "Gagal membuat admin: ${response.code()}"
+                                    resultMessage = when (response.code()) {
+                                        409 -> "An admin with this contact ('$contact') already exists. Please use a different number or email."
+                                        400 -> "Invalid data. Please check all fields and try again."
+                                        else -> "Failed to create admin. Server responded with code: ${response.code()}"
+                                    }
                                     isSuccess = false
                                 }
                             } catch (e: Exception) {
-                                resultMessage = "Error: ${e.localizedMessage}"
+                                resultMessage = when (e) {
+                                    is HttpException -> {
+                                        "Request failed with HTTP ${e.code()}: ${e.message()}"
+                                    }
+                                    else -> "Unexpected error: ${e.localizedMessage}"
+                                }
                                 isSuccess = false
                             }
                         }
@@ -148,7 +163,7 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                         .align(Alignment.CenterHorizontally),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6A8695),
-                        contentColor = Color(0xFFEEEECF)
+                        contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(50)
                 ) {
@@ -156,7 +171,7 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(13.dp))
 
             Button(
                 onClick = {
@@ -167,7 +182,7 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                     .width(100.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF213B54),
-                    contentColor = Color(0xFFEEEECF)
+                    contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(50)
             ) {
@@ -203,8 +218,9 @@ fun CreateAdminPage(navController: NavController, jwtToken: String) {
                 text = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (isSuccess) "Admin created successfully" else "Admin creation failed",
-                            color = Color.White
+                            text = resultMessage ?: "",
+                            color = Color.White,
+                            textAlign = TextAlign.Center
                         )
                     }
                 },

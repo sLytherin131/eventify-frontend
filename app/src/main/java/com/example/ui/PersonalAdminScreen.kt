@@ -43,6 +43,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.example.app.R
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.sp
 
 /* === Data Class === */
 data class AdminRequest(
@@ -135,7 +136,23 @@ class AdminViewModel(private val token: String) : ViewModel() {
                 password = response.password
                 onResult("Update successful")
             } catch (e: Exception) {
-                onResult("Update failed")
+                val message = when (e) {
+                    is retrofit2.HttpException -> {
+                        when (e.code()) {
+                            400 -> "Bad request. Please check the input fields."
+                            401 -> "Unauthorized. Please login again."
+                            403 -> "Forbidden. You don't have access."
+                            404 -> "Admin not found."
+                            409 -> "Conflict. An admin with this email or number already exists."
+                            500 -> "Internal server error. Please try again later."
+                            else -> "HTTP ${e.code()}: ${e.message()}"
+                        }
+                    }
+                    is java.net.UnknownHostException -> "No internet connection. Please check your network."
+                    is java.net.SocketTimeoutException -> "Server timeout. Please try again later."
+                    else -> "Unexpected error: ${e.localizedMessage ?: "Unknown"}"
+                }
+                onResult(message)
             }
         }
     }
@@ -211,6 +228,19 @@ fun PersonalAdminScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.Start
             ) {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Text(
+                    text = "Personal Admin",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+
                 Row {
                     Text("Name: ", color = Color.White, fontWeight = FontWeight.Bold)
                     Text(adminState?.name ?: "", color = Color.White)
@@ -239,6 +269,7 @@ fun PersonalAdminScreen(
                     onValueChange = { viewModel.name = it },
                     label = { Text("Name:", color = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
@@ -253,6 +284,7 @@ fun PersonalAdminScreen(
                     onValueChange = { viewModel.email = it },
                     label = { Text("Email:", color = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
@@ -268,6 +300,7 @@ fun PersonalAdminScreen(
                     enabled = false,
                     label = { Text("Whatsapp Number:", color = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         disabledBorderColor = Color.Gray,
                         disabledTextColor = Color.LightGray,
@@ -280,6 +313,7 @@ fun PersonalAdminScreen(
                     onValueChange = { viewModel.password = it },
                     label = { Text("Password:", color = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
@@ -371,10 +405,20 @@ fun PersonalAdminScreen(
                     }
                 },
                 title = {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = if (resultMessage!!.contains("success", true)) "Success" else "Failed",
-                            color = if (resultMessage!!.contains("success", true)) Color.Green else Color.Red
+                            text = when {
+                                resultMessage!!.contains("success", true) -> "Success"
+                                resultMessage!!.contains("unauthorized", true) -> "Unauthorized"
+                                resultMessage!!.contains("conflict", true) -> "Conflict"
+                                else -> "Error"
+                            },
+                            color = if (resultMessage!!.contains("success", true)) Color.Green else Color.Red,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
                         )
                     }
                 },

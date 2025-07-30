@@ -2,6 +2,7 @@ package com.example.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -171,11 +172,23 @@ fun ListEventScreen(navController: NavController, jwtToken: String) {
                     readOnly = true,
                     value = monthNames[currentMonth - 1],
                     onValueChange = {},
-                    label = { Text("Filter by month") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("Filter by month", color = Color.Black) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Transparent)
+                        .border(1.dp, Color.Black, RoundedCornerShape(12.dp)), // ✅ Tambah border manual
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        textColor = Color.Black,
+                        cursorColor = Color.Transparent,
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color.White
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -200,7 +213,7 @@ fun ListEventScreen(navController: NavController, jwtToken: String) {
                 }
             } else {
                 if (events.isEmpty()) {
-                    Text("No events this month.", color = Color.White)
+                    Text("No events this month.", color = Color.Black)
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(events) { ev ->
@@ -235,8 +248,10 @@ fun ListEventScreen(navController: NavController, jwtToken: String) {
 
                                     Spacer(modifier = Modifier.height(4.dp))
 
+                                    val dateFormat = SimpleDateFormat("EEEE, dd MMMM", Locale("id", "ID"))
+
                                     Text(
-                                        text = "${dayFormat.format(start)} - ${timeFormat.format(start)}\n${dayFormat.format(end)} - ${timeFormat.format(end)}",
+                                        text = "${dateFormat.format(start)} - ${timeFormat.format(start)}\n${dateFormat.format(end)} - ${timeFormat.format(end)}",
                                         color = Color(0xFFEEEECF),
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center

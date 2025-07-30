@@ -18,8 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.app.R
@@ -30,6 +29,7 @@ import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.unit.IntOffset
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -58,7 +58,7 @@ fun HomePageScreen(
 
     val coroutineScope = rememberCoroutineScope()
     var upcomingEvents by remember { mutableStateOf<List<EventWithDetailsResponse>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) } // 🔥 UPDATE HERE
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         val api = createApiService(jwtToken)
@@ -70,7 +70,7 @@ fun HomePageScreen(
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                isLoading = false // 🔥 UPDATE HERE
+                isLoading = false
             }
         }
     }
@@ -78,14 +78,8 @@ fun HomePageScreen(
     Scaffold(
         backgroundColor = backgroundColor,
         topBar = {
-            TopAppBar(
-                backgroundColor = navBarColor,
-                elevation = 4.dp
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
+            TopAppBar(backgroundColor = navBarColor, elevation = 4.dp) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Image(
                         painter = painterResource(id = R.drawable.eventifylogo),
                         contentDescription = "Eventify Logo",
@@ -105,11 +99,7 @@ fun HomePageScreen(
                     .clickable { navController.navigate("calendar/$jwtToken") },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarToday,
-                    contentDescription = "Calendar",
-                    tint = lightCream
-                )
+                Icon(Icons.Default.CalendarToday, contentDescription = "Calendar", tint = lightCream)
             }
         },
         bottomBar = {
@@ -150,11 +140,7 @@ fun HomePageScreen(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = icons[index],
-                                contentDescription = item,
-                                tint = iconTint
-                            )
+                            Icon(imageVector = icons[index], contentDescription = item, tint = iconTint)
                         }
                     }
                 }
@@ -168,7 +154,7 @@ fun HomePageScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White) // 🔥 UPDATE HERE
+                CircularProgressIndicator(color = Color.White)
             }
         } else {
             Column(
@@ -201,7 +187,6 @@ fun HomePageScreen(
                         HorizontalPager(
                             count = sortedEvents.size,
                             state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 0.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(170.dp)
@@ -227,33 +212,29 @@ fun HomePageScreen(
                                 ) {
                                     Text(
                                         text = ev.event.name,
-                                        color = Color(0xFFEEEECF),
+                                        color = lightCream,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 18.sp,
                                         textAlign = TextAlign.Center
                                     )
-
                                     Spacer(modifier = Modifier.height(4.dp))
+                                    val dateFormat = SimpleDateFormat("EEEE, dd MMMM", Locale("id", "ID"))
 
                                     Text(
-                                        text = "${dayFormat.format(start)} - ${timeFormat.format(start)}\n${dayFormat.format(end)} - ${timeFormat.format(end)}",
-                                        color = Color(0xFFEEEECF),
+                                        text = "${dateFormat.format(start)} - ${timeFormat.format(start)}\n${dateFormat.format(end)} - ${timeFormat.format(end)}",
+                                        color = lightCream,
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Center
                                     )
-
                                     Spacer(modifier = Modifier.height(6.dp))
-
                                     Text(
                                         text = ev.event.description?.truncate(60) ?: "-",
-                                        color = Color(0xFFEEEECF),
+                                        color = lightCream,
                                         fontSize = 14.sp,
                                         textAlign = TextAlign.Justify,
                                         maxLines = 2
                                     )
-
                                     Spacer(modifier = Modifier.weight(1f))
-
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -266,16 +247,11 @@ fun HomePageScreen(
                                                 navController.navigate("event_detail/$jwtToken/${ev.event.id}")
                                             }
                                         )
-
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             IconButton(onClick = {
                                                 navController.navigate("create_event/$jwtToken?editId=${ev.event.id}")
                                             }) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Edit,
-                                                    contentDescription = "Edit",
-                                                    tint = Color.White
-                                                )
+                                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                                             }
                                             Box(
                                                 modifier = Modifier
@@ -285,12 +261,7 @@ fun HomePageScreen(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 if (isPast) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Check,
-                                                        contentDescription = "Done",
-                                                        tint = Color.White,
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
+                                                    Icon(Icons.Default.Check, contentDescription = "Done", tint = Color.White, modifier = Modifier.size(16.dp))
                                                 }
                                             }
                                         }
@@ -312,53 +283,79 @@ fun HomePageScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // 👇 Task-list Personal Card
                 Card(
                     backgroundColor = cardColor,
                     shape = RoundedCornerShape(12.dp),
                     elevation = 8.dp,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
                         .height(310.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
                         ) {
                             Text(
                                 text = "Task-list Personal",
-                                color = lightCream,
+                                color = Color.White,
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.weight(1f)
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center)
                             )
-                            IconButton(onClick = { showDialog = true }) {
-                                Icon(Icons.Default.Add, contentDescription = "Add", tint = lightCream)
+                            IconButton(
+                                onClick = { showDialog = true },
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp) // Ukuran tombol bisa diatur sesuai preferensi
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White.copy(alpha = 0.2f)), // Abu-abu transparan
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add",
+                                        tint = Color.White
+                                    )
+                                }
                             }
+
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         if (taskViewModel.tasks.isEmpty()) {
-                            Text("No personal tasks yet.", color = lightCream)
+                            Text("No personal tasks yet.", color = Color.White)
                         } else {
-                            fun getTypeColor(type: String): Color {
-                                return when (type) {
-                                    "Personal" -> Color(0xFFB5E48C)
-                                    "Work" -> Color(0xFFFFF59D)
-                                    "Urgent" -> Color(0xFFE57373)
-                                    else -> lightCream
-                                }
-                            }
-
                             val scrollState = rememberScrollState()
 
                             Box(
                                 modifier = Modifier
+                                    .fillMaxWidth()
                                     .height(220.dp)
-                                    .verticalScroll(scrollState)
                             ) {
-                                Column {
+                                Column(
+                                    modifier = Modifier
+                                        .verticalScroll(scrollState)
+                                        .padding(end = 8.dp)
+                                ) {
+                                    val getTypeColor: (String) -> Color = {
+                                        when (it) {
+                                            "Personal" -> Color(0xFFB5E48C)
+                                            "Work" -> Color(0xFFFFF59D)
+                                            "Urgent" -> Color(0xFFE57373)
+                                            else -> lightCream
+                                        }
+                                    }
+
                                     taskViewModel.tasks.asReversed().forEach { task ->
                                         val typeColor = getTypeColor(task.taskType)
                                         Row(
@@ -366,9 +363,10 @@ fun HomePageScreen(
                                             modifier = Modifier.padding(vertical = 4.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Task Icon",
-                                                tint = typeColor
+                                                imageVector = Icons.Default.FiberManualRecord,
+                                                contentDescription = null,
+                                                tint = typeColor,
+                                                modifier = Modifier.size(28.dp)
                                             )
                                             Text(
                                                 text = task.description,
@@ -378,15 +376,19 @@ fun HomePageScreen(
                                                     .padding(start = 8.dp)
                                             )
                                             IconButton(onClick = { taskViewModel.deleteTask(task.id) }) {
-                                                Icon(
-                                                    Icons.Default.Delete,
-                                                    contentDescription = "Delete",
-                                                    tint = lightCream
-                                                )
+                                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
                                             }
                                         }
                                     }
                                 }
+
+                                VerticalScrollbar(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .fillMaxHeight(),
+                                    scrollState = scrollState,
+                                    color = lightCream.copy(alpha = 0.6f)
+                                )
                             }
                         }
                     }
@@ -402,6 +404,39 @@ fun HomePageScreen(
                 taskViewModel.addTask(desc, type)
                 showDialog = false
             }
+        )
+    }
+}
+
+// ✅ Tambahan: Scrollbar komponen
+@Composable
+fun VerticalScrollbar(
+    modifier: Modifier = Modifier,
+    scrollState: ScrollState,
+    width: Dp = 4.dp,
+    color: Color = Color.LightGray
+) {
+    val proportion = scrollState.maxValue.toFloat().takeIf { it > 0 }?.let {
+        scrollState.value.toFloat() / it
+    } ?: 0f
+
+    val heightFraction = scrollState.maxValue.takeIf { it > 0 }?.let {
+        220f / (it + 220f)
+    } ?: 0.2f
+
+    Box(
+        modifier = modifier
+            .width(width)
+            .fillMaxHeight()
+            .background(Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(heightFraction)
+                .align(Alignment.TopStart)
+                .offset { IntOffset(0, (proportion * 220f).toInt()) }
+                .background(color = color, shape = RoundedCornerShape(2.dp))
         )
     }
 }

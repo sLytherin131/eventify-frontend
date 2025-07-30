@@ -208,7 +208,7 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Monthly Task Personal", color = lightCream, fontSize = 16.sp)
+                    Text("Monthly Task Personal", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Canvas(modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
@@ -260,7 +260,7 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = label,
-                                    color = lightCream,
+                                    color = Color.White,
                                     fontSize = 14.sp
                                 )
                             }
@@ -287,14 +287,14 @@ fun ChartPage(navController: NavController, jwtToken: String, taskViewModel: Tas
                     // 👇 Tambahkan di sini
                     Text(
                         text = "Periode: ${dateFormat.format(weekStart)} - ${dateFormat.format(weekEnd)}",
-                        color = lightCream,
-                        fontSize = 14.sp
+                        color = Color.White,
+                        fontSize = 15.sp
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Sudah ada sebelumnya
-                    Text("Weekly Event Participant", color = lightCream, fontSize = 16.sp)
+                    Text("Weekly Event Participant", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Canvas(modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)

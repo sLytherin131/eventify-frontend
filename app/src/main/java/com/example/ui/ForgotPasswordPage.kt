@@ -23,6 +23,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import androidx.compose.ui.text.font.FontWeight // pastikan import ini ditambahkan di atas
 
 // --- Data & API ---
 data class ForgotPasswordRequest(val identifier: String)
@@ -131,7 +132,7 @@ fun ForgotPasswordPage(navController: NavController) {
 
                     Card(
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 24.dp)
                             .fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = cardColor),
                         shape = RoundedCornerShape(12.dp),
@@ -143,18 +144,20 @@ fun ForgotPasswordPage(navController: NavController) {
                         ) {
                             Text(
                                 text = "Reset Password",
-                                fontSize = 20.sp,
-                                color = textColor
+                                fontSize = 28.sp,
+                                color = textColor,
+                                fontWeight = FontWeight.Bold // ← ini bikin teksnya bold
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
 
                             OutlinedTextField(
                                 value = viewModel.identifier,
                                 onValueChange = { viewModel.identifier = it },
-                                label = { Text("Email or WhatsApp Number:", color = textColor) },
+                                label = { Text("WhatsApp Number:", color = textColor) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = textColor,
                                     unfocusedTextColor = textColor,
@@ -165,7 +168,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 )
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
 
                             Button(
                                 onClick = { viewModel.sendCode() },
@@ -177,7 +180,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 Text("Send Code", color = textColor, style = MaterialTheme.typography.bodyLarge)
                             }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(13.dp))
 
                             OutlinedTextField(
                                 value = viewModel.code,
@@ -185,6 +188,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 label = { Text("Code:", color = textColor) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = textColor,
                                     unfocusedTextColor = textColor,
@@ -195,7 +199,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 )
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             OutlinedTextField(
                                 value = viewModel.newPassword,
@@ -203,6 +207,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 label = { Text("New Password:", color = textColor) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedTextColor = textColor,
                                     unfocusedTextColor = textColor,
@@ -213,7 +218,7 @@ fun ForgotPasswordPage(navController: NavController) {
                                 )
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
 
                             Button(
                                 onClick = { viewModel.resetPassword() },
@@ -227,7 +232,7 @@ fun ForgotPasswordPage(navController: NavController) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     TextButton(
                         onClick = { navController.navigate("login") }

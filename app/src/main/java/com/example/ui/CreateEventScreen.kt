@@ -249,63 +249,110 @@ fun CreateEventScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Create Event", color = lightCream, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.CenterHorizontally))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Create Event", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
                             value = eventName,
                             onValueChange = { eventName = it },
-                            label = { Text("Event Name:", color = lightCream) },
+                            label = { Text("Event Name:", color = Color.White) },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.LightGray)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                textColor = Color.White,
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White,
+                                cursorColor = Color.White,
+                                focusedLabelColor = Color.White,
+                                unfocusedLabelColor = Color.White
+                            )
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
                         OutlinedTextField(
                             value = description,
                             onValueChange = { description = it },
-                            label = { Text("Description:", color = lightCream) },
+                            label = { Text("Description:", color = Color.White) },
                             modifier = Modifier.fillMaxWidth().height(100.dp),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color.White, unfocusedBorderColor = Color.LightGray)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                textColor = Color.White,
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White,
+                                cursorColor = Color.White,
+                                focusedLabelColor = Color.White,
+                                unfocusedLabelColor = Color.White
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Time Start:", color = lightCream)
+                        Text("Time Start:", color = Color.White)
                         OutlinedTextField(
                             value = timeStart,
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            modifier = Modifier.fillMaxWidth().clickable { pickDateTime { timeStart = it } },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, disabledTextColor = Color.White)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { pickDateTime { timeStart = it } },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledTextColor = Color.White,
+                                disabledBorderColor = Color.White,
+                                disabledLabelColor = Color.White
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Time End:", color = lightCream)
+                        Text("Time End:", color = Color.White)
                         OutlinedTextField(
                             value = timeEnd,
                             onValueChange = {},
                             readOnly = true,
                             enabled = false,
-                            modifier = Modifier.fillMaxWidth().clickable { pickDateTime { timeEnd = it } },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, disabledTextColor = Color.White)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { pickDateTime { timeEnd = it } },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledTextColor = Color.White,
+                                disabledBorderColor = Color.White,
+                                disabledLabelColor = Color.White
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Add Member:", color = lightCream)
+                            Text(
+                                "Add Member:",
+                                color = Color.White,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
 
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
-                                placeholder = { Text("Search member...", fontSize = 12.sp, color = Color.LightGray) },
-                                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White)
+                                placeholder = {
+                                    Text("Search member...", fontSize = 12.sp, color = Color.LightGray)
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    textColor = Color.White,
+                                    focusedBorderColor = Color.White,
+                                    unfocusedBorderColor = Color.White,
+                                    cursorColor = Color.White,
+                                    focusedLabelColor = Color.White,
+                                    unfocusedLabelColor = Color.White
+                                )
                             )
                         }
 
@@ -344,6 +391,8 @@ fun CreateEventScreen(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(8.dp))
+
 // ✅ Lanjut komponen Card daftar member
                         Card(backgroundColor = Color.White, modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(8.dp)) {
@@ -364,15 +413,25 @@ fun CreateEventScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Add Task:", color = lightCream, modifier = Modifier.weight(1f))
-                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                                IconButton(
-                                    onClick = { showTaskDialog = true },
-                                    modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color.White)
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = "Add Task", tint = cardColor)
-                                }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Add Task:",
+                                color = Color.White,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+
+                            IconButton(
+                                onClick = { showTaskDialog = true },
+                                modifier = Modifier
+                                    .padding(start = 240.dp) // ⬅️ Padding kiri khusus tombol +
+                                    .size(30.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.White)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Add Task", tint = cardColor)
                             }
                         }
 
@@ -409,7 +468,7 @@ fun CreateEventScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
                             onClick = { postEvent() },
@@ -431,7 +490,12 @@ fun CreateEventScreen(
         AlertDialog(
             onDismissRequest = { showTaskDialog = false },
             confirmButton = {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 0.dp, bottom = 20.dp), // ✅ Padding atas & bawah tombol
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Button(
                         onClick = {
                             if (newTaskMemo.isNotBlank()) {
@@ -454,7 +518,13 @@ fun CreateEventScreen(
             },
             title = {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("Task", color = Color(0xFFEEEECF), fontWeight = FontWeight.Bold)
+                    Text(
+                        "Task",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp) // ⬅️ Atur padding atas & bawah
+                    )
                 }
             },
             text = {
@@ -466,7 +536,7 @@ fun CreateEventScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(100.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .background(Color.White),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             textColor = Color.Black,
@@ -478,7 +548,7 @@ fun CreateEventScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(
@@ -539,7 +609,12 @@ fun CreateEventScreen(
         AlertDialog(
             onDismissRequest = { showEditTaskDialog = false },
             confirmButton = {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 0.dp, bottom = 20.dp), // ✅ Padding atas & bawah tombol
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Button(
                         onClick = {
                             if (editedTaskMemo.isNotBlank()) {
@@ -563,7 +638,13 @@ fun CreateEventScreen(
             },
             title = {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("Task", color = Color(0xFFEEEECF), fontWeight = FontWeight.Bold)
+                    Text(
+                        "Task",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+                    )
                 }
             },
             text = {
@@ -587,7 +668,7 @@ fun CreateEventScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Type:", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(

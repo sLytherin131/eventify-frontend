@@ -7,7 +7,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
 @Composable
@@ -33,8 +35,9 @@ fun AddPersonalTaskDialog(
             ) {
                 Text(
                     text = "Task Personal",
+                    fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.h6,
-                    color = Color(0xFFEAEFC9)
+                    color = Color.White
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -46,6 +49,7 @@ fun AddPersonalTaskDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.White,
                         textColor = Color.Black
@@ -62,12 +66,16 @@ fun AddPersonalTaskDialog(
                     Text(
                         text = "Type:",
                         color = Color.White,
-                        modifier = Modifier.padding(end = 16.dp)
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .padding(top = 10.dp) // ⬅️ Tambahkan jarak atas di sini
                     )
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(9.dp),
-                        modifier = Modifier.padding(start = 9.dp) // ⬅️ Tambah padding kiri di sini
+                        modifier = Modifier.padding(start = 9.dp)
                     ) {
                         types.forEach { type ->
                             Row(
@@ -76,7 +84,7 @@ fun AddPersonalTaskDialog(
                                 RadioButton(
                                     selected = selectedType == type,
                                     onClick = { selectedType = type },
-                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFEAEFC9))
+                                    colors = RadioButtonDefaults.colors(selectedColor = Color.White)
                                 )
                                 Text(
                                     text = type,
@@ -98,7 +106,7 @@ fun AddPersonalTaskDialog(
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF4B6587),
-                        contentColor = Color(0xFFEAEFC9)
+                        contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(50)
                 ) {

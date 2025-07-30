@@ -35,6 +35,7 @@ import com.example.app.R
 import org.json.JSONObject
 import com.example.api.ApiService
 import com.example.api.LoginRequest
+import androidx.compose.ui.text.font.FontWeight // pastikan import ini ada
 
 // --- Data & API ---
 
@@ -195,10 +196,13 @@ fun LoginScreen(
                     ) {
                         Text(
                             "Login",
-                            style = MaterialTheme.typography.headlineMedium.copy(color = textColor)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                color = textColor,
+                                fontWeight = FontWeight.Bold // ← ini bikin bold
+                            )
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         OutlinedTextField(
                             value = viewModel.identifier,
@@ -206,6 +210,7 @@ fun LoginScreen(
                             label = { Text("Email / Nomor WhatsApp", color = textColor) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = textColor,
                                 unfocusedTextColor = textColor,
@@ -234,6 +239,7 @@ fun LoginScreen(
                                     )
                                 }
                             },
+                            shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = textColor,
                                 unfocusedTextColor = textColor,
@@ -245,37 +251,29 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
+                        Spacer(modifier = Modifier.height(20.dp)) // atas tombol
                         TextButton(onClick = onForgotPasswordClick) {
                             Text(
                                 text = "Forgot Password?",
                                 style = MaterialTheme.typography.labelSmall.copy(color = textColor)
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp)) // bawah tombol
 
                         Button(
                             onClick = { viewModel.login() },
+                            modifier = Modifier.width(130.dp),
                             enabled = !viewModel.isLoading,
                             colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                            shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
+                            shape = RoundedCornerShape(20.dp)
                         ) {
                             if (viewModel.isLoading) {
                                 CircularProgressIndicator(
                                     color = textColor,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             } else {
-                                Text(
-                                    text = "Login",
-                                    color = textColor,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                                Text("Login", color = textColor, style = MaterialTheme.typography.bodyLarge)
                             }
                         }
 

@@ -18,19 +18,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.app.R
 import kotlinx.coroutines.launch
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import retrofit2.Response
-import com.example.ui.MemberResponse
-import com.example.ui.MemberRequest
+import retrofit2.HttpException
 
 interface MemberApi {
     @GET("/members")
@@ -110,6 +109,17 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     .background(Color(0xFF1F2E43), shape = RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
+                Text(
+                    text = "Add or Edit Member",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = {
@@ -119,6 +129,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     placeholder = { Text("Search Name...", color = Color.White) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = whiteTextFieldColors
                 )
 
@@ -141,7 +152,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                                             selectedMember = member
                                             name = member.name
                                             number = member.whatsappNumber
-                                            searchQuery = "" // optional: clear after selecting
+                                            searchQuery = ""
                                         }
                                         .padding(8.dp)
                                 )
@@ -150,7 +161,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     } else {
                         Text(
                             text = "No results found",
-                            color = Color.LightGray,
+                            color = Color.Red,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
@@ -172,7 +183,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                 Text(
                     text = "Member Information",
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFEEEECF),
+                    color = Color.White,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 8.dp)
@@ -183,6 +194,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     onValueChange = { name = it },
                     label = { Text("Name:", color = Color.White) },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = whiteTextFieldColors
                 )
 
@@ -192,27 +204,44 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     label = { Text("Whatsapp Number:", color = Color.White) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = whiteTextFieldColors
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(11.dp))
 
                 Button(
                     onClick = {
                         coroutineScope.launch {
                             try {
+                                if (selectedMember == null && members.any { it.whatsappNumber == number }) {
+                                    resultMessage = "The number '$number' is already registered. Please select it from the search results or use a different number."
+                                    return@launch
+                                }
+
                                 if (selectedMember != null) {
                                     api.updateMember(selectedMember!!.whatsappNumber, MemberRequest(number, name))
-                                    resultMessage = "Update successful"
+                                    resultMessage = "Member '${name}' with number '${number}' was successfully updated."
                                 } else {
                                     api.createMember(MemberRequest(number, name))
-                                    resultMessage = "Member created"
+                                    resultMessage = "New member '${name}' with number '${number}' was successfully created."
                                 }
+
                                 members = api.getMembers()
                                 selectedMember = null
                                 searchQuery = ""
                             } catch (e: Exception) {
-                                resultMessage = "Error: ${e.message}"
+                                resultMessage = when (e) {
+                                    is HttpException -> {
+                                        when (e.code()) {
+                                            409 -> "Member with WhatsApp number '$number' already exists. Please use a different number."
+                                            400 -> "Bad request. Please check the input fields."
+                                            401 -> "Unauthorized access. Please log in again."
+                                            else -> "Server error (${e.code()}): ${e.message()}"
+                                        }
+                                    }
+                                    else -> "Unexpected error: ${e.localizedMessage}"
+                                }
                             }
                         }
                     },
@@ -220,14 +249,14 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6A8695),
-                        contentColor = Color(0xFFEEEECF)
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Submit", fontSize = 18.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(13.dp))
 
             Button(
                 onClick = { navController.popBackStack() },
@@ -235,7 +264,7 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF213B54),
-                    contentColor = Color(0xFFEEEECF)
+                    contentColor = Color.White
                 )
             ) {
                 Text("Back")
@@ -260,8 +289,16 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (it.contains("success", true) || it.contains("created", true)) "Success" else "Failed",
-                            color = if (it.contains("success", true) || it.contains("created", true)) Color.Green else Color.Red,
+                            text = when {
+                                it.contains("successfully", true) -> "Success"
+                                it.contains("already exists", true) -> "Duplicate Entry"
+                                it.contains("unauthorized", true) -> "Unauthorized"
+                                else -> "Error"
+                            },
+                            color = when {
+                                it.contains("successfully", true) -> Color.Green
+                                else -> Color.Red
+                            },
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -270,11 +307,9 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                 text = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (it.contains("success", true)) "Update successful"
-                            else if (it.contains("created", true)) "Member created"
-                            else "Update failed",
+                            text = it,
                             color = Color.White,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                     }
                 },

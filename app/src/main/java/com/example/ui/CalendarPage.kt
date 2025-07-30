@@ -238,7 +238,7 @@ fun CalendarPage(navController: NavHostController, jwtToken: String) {
                                         .background(
                                             color = when {
                                                 isSelected -> Color.White
-                                                isToday -> Color.Yellow
+                                                isToday -> Color(0xFF92B0BC)
                                                 else -> Color.Transparent
                                             },
                                             shape = CircleShape
@@ -261,17 +261,17 @@ fun CalendarPage(navController: NavHostController, jwtToken: String) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Event", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Event", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
             Spacer(modifier = Modifier.height(8.dp))
 
             if (eventList.isEmpty()) {
-                Text("No events for this month", color = Color.White, fontSize = 14.sp)
+                Text("No events for this month", color = Color.Black, fontSize = 14.sp)
             } else {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp) // Atur tinggi scrollable area sesuai kebutuhan
+                        .weight(1f) // Atur tinggi scrollable area sesuai kebutuhan
                 ) {
                     LazyColumn {
                         items(eventList) { event ->
