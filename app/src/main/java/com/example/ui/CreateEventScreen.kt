@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import com.example.app.R
@@ -97,6 +98,9 @@ fun CreateEventScreen(
     var newTaskMemo by remember { mutableStateOf("") }
     var newTaskType by remember { mutableStateOf(TaskType.NORMAL) }
 
+    var showValidationDialog by remember { mutableStateOf(false) }
+    var validationMessage by remember { mutableStateOf("") }
+
     LaunchedEffect(editId) {
         if (!editId.isNullOrEmpty()) {
             try {
@@ -141,6 +145,21 @@ fun CreateEventScreen(
     }
 
     fun postEvent() {
+        if (eventName.isBlank() || description.isBlank() || eventMembers.isEmpty() || timeStart.isBlank() || timeEnd.isBlank()) {
+            validationMessage = "All fields must be filled, except Tasks."
+            showValidationDialog = true
+            return
+        }
+
+        val startMillis = parseDateTimeToMillis(timeStart)
+        val endMillis = parseDateTimeToMillis(timeEnd)
+
+        if (endMillis <= startMillis) {
+            validationMessage = "Start time must be earlier than end time."
+            showValidationDialog = true
+            return
+        }
+
         coroutineScope.launch {
             try {
                 val eventTasks = dummyTasks.map {
@@ -151,19 +170,17 @@ fun CreateEventScreen(
                 }
                 val requestBody = CreateEventRequest(
                     eventName, description,
-                    parseDateTimeToMillis(timeStart), parseDateTimeToMillis(timeEnd),
+                    startMillis, endMillis,
                     eventTasks, eventMembersBody
                 )
 
                 if (!editId.isNullOrEmpty()) {
                     val response = api.updateEvent(editId.toInt(), requestBody)
-
                     if (response.isSuccessful) {
-                        Log.d("CreateEvent", "Update response: ${response.body()?.string()}")
                         navController.navigate("event_detail/$jwtToken/$editId")
                     } else {
-                        val errorBody = response.errorBody()?.string()
-                        Log.e("CreateEvent", "Update failed: $errorBody")
+                        validationMessage = "Failed to update event."
+                        showValidationDialog = true
                     }
                 } else {
                     val response = api.createEvent(requestBody)
@@ -171,11 +188,13 @@ fun CreateEventScreen(
                         val eventId = response.body()?.id ?: return@launch
                         navController.navigate("event_detail/$jwtToken/$eventId")
                     } else {
-                        Log.e("CreateEvent", "Failed to create: ${response.errorBody()?.string()}")
+                        validationMessage = "Failed to create event."
+                        showValidationDialog = true
                     }
                 }
             } catch (e: Exception) {
-                Log.e("CreateEvent", "Error: ${e.message}")
+                validationMessage = "An error occurred: ${e.message}"
+                showValidationDialog = true
             }
         }
     }
@@ -723,6 +742,49 @@ fun CreateEventScreen(
             backgroundColor = Color(0xFF1F2E43),
             contentColor = Color.White,
             shape = RoundedCornerShape(12.dp)
+        )
+    }
+    if (showValidationDialog) {
+        AlertDialog(
+            onDismissRequest = { showValidationDialog = false },
+            confirmButton = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp), // ⬅️ Padding bawah tombol OK
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = { showValidationDialog = false },
+                        modifier = Modifier.width(130.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF5D7E99),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(30.dp)
+                    ) {
+                        Text("Ok", color = Color.White)
+                    }
+                }
+            },
+            title = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Create Event Failed",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(validationMessage, color = Color.White, textAlign = TextAlign.Center)
+                }
+            },
+            backgroundColor = Color(0xFF1F2E43),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(16.dp) // ⬅️ Sudut box AlertDialog dibulatkan
         )
     }
 }

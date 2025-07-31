@@ -40,6 +40,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.res.painterResource
 import com.example.app.R
 import androidx.compose.ui.layout.ContentScale
@@ -170,7 +171,6 @@ class AdminViewModelFactory(private val token: String) : ViewModelProvider.Facto
     }
 }
 
-/* === Composable Screen === */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun PersonalAdminScreen(
@@ -214,176 +214,191 @@ fun PersonalAdminScreen(
         containerColor = Color(0xFF92B0BC)
     ) { innerPadding ->
 
-    Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color(0xFF1F2E43), shape = RoundedCornerShape(16.dp))
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Text(
-                    text = "Personal Admin",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.headlineSmall,
+            item {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    textAlign = TextAlign.Center
-                )
+                        .background(Color(0xFF1F2E43), shape = RoundedCornerShape(16.dp))
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Spacer(modifier = Modifier.height(18.dp))
 
-                Row {
-                    Text("Name: ", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(adminState?.name ?: "", color = Color.White)
-                }
-                Row {
-                    Text("Whatsapp Number: ", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(adminState?.whatsappNumber ?: "", color = Color.White)
-                }
-                Row {
-                    Text("Email: ", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(adminState?.email ?: "", color = Color.White)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Change Information",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = viewModel.name,
-                    onValueChange = { viewModel.name = it },
-                    label = { Text("Name:", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.LightGray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
+                    Text(
+                        text = "Personal Admin",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        textAlign = TextAlign.Center
                     )
-                )
 
-                OutlinedTextField(
-                    value = viewModel.email,
-                    onValueChange = { viewModel.email = it },
-                    label = { Text("Email:", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.LightGray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
+                    Row {
+                        Text("Name: ", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(adminState?.name ?: "", color = Color.White)
+                    }
+                    Row {
+                        Text("Whatsapp Number: ", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(adminState?.whatsappNumber ?: "", color = Color.White)
+                    }
+                    Row {
+                        Text("Email: ", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(adminState?.email ?: "", color = Color.White)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Change Information",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
                     )
-                )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = viewModel.whatsapp,
-                    onValueChange = {},
-                    enabled = false,
-                    label = { Text("Whatsapp Number:", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledBorderColor = Color.Gray,
-                        disabledTextColor = Color.LightGray,
-                        disabledLabelColor = Color.LightGray
+                    OutlinedTextField(
+                        value = viewModel.name,
+                        onValueChange = { viewModel.name = it },
+                        label = { Text("Name:", color = Color.White) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        )
                     )
-                )
 
-                OutlinedTextField(
-                    value = viewModel.password,
-                    onValueChange = { viewModel.password = it },
-                    label = { Text("Password:", color = Color.White) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.LightGray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val icon = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                                tint = Color.White
-                            )
+                    OutlinedTextField(
+                        value = viewModel.email,
+                        onValueChange = { viewModel.email = it },
+                        label = { Text("Email:", color = Color.White) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = viewModel.whatsapp,
+                        onValueChange = {},
+                        enabled = false,
+                        label = { Text("Whatsapp Number:", color = Color.White) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledBorderColor = Color.Gray,
+                            disabledTextColor = Color.LightGray,
+                            disabledLabelColor = Color.LightGray
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = viewModel.password,
+                        onValueChange = { viewModel.password = it },
+                        label = { Text("Password:", color = Color.White) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val icon = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                    tint = Color.White
+                                )
+                            }
                         }
-                    }
-                )
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = {
-                        viewModel.updateAdminData { msg -> resultMessage = msg }
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally).width(130.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text("Change")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        viewModel.logout(context)
-                        onLogout()
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally).width(130.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B2C40)),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text("Sign Out")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
                     Button(
-                        onClick = { navController.navigate("create_admin/${jwtToken}") },
-                        modifier = Modifier.width(140.dp),
+                        onClick = {
+                            viewModel.updateAdminData { msg -> resultMessage = msg }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .width(130.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text("Create Admin")
+                        Text("Change", color = Color.White)
                     }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Button(
-                        onClick = { navController.navigate("add_member/${jwtToken}") },
-                        modifier = Modifier.width(140.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
+                        onClick = {
+                            viewModel.logout(context)
+                            onLogout()
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .width(130.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9B2C40)),
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text("Add Member")
+                        Text("Sign Out", color = Color.White)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("create_admin/${jwtToken}") },
+                            modifier = Modifier.width(140.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text("Create Admin", color = Color.White)
+                        }
+
+                        Button(
+                            onClick = { navController.navigate("add_member/${jwtToken}") },
+                            modifier = Modifier.width(140.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A8695)),
+                            shape = RoundedCornerShape(50)
+                        ) {
+                            Text("Add Member", color = Color.White)
+                        }
                     }
                 }
             }
@@ -433,7 +448,6 @@ fun PersonalAdminScreen(
     }
 }
 
-/* === Bottom Navigation Bar === */
 @Composable
 fun BottomNavigationBar(navController: NavController, jwtToken: String, modifier: Modifier = Modifier) {
     val navBarColor = Color(0xFF243447)
@@ -497,3 +511,4 @@ fun BottomNavigationBar(navController: NavController, jwtToken: String, modifier
         }
     }
 }
+

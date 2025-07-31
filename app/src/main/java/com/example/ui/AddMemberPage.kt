@@ -76,6 +76,9 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
 
     var resultMessage by remember { mutableStateOf<String?>(null) }
 
+    var validationDialogShown by remember { mutableStateOf(false) }
+    var validationMessage by remember { mutableStateOf("") }
+
     val whiteTextFieldColors = TextFieldDefaults.outlinedTextFieldColors(
         focusedTextColor = Color.White,
         unfocusedTextColor = Color.White,
@@ -212,6 +215,12 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
 
                 Button(
                     onClick = {
+                        if (name.isBlank() || number.isBlank()) {
+                            validationMessage = "Both Name and Whatsapp Number fields must be filled."
+                            validationDialogShown = true
+                            return@Button
+                        }
+
                         coroutineScope.launch {
                             try {
                                 if (selectedMember == null && members.any { it.whatsappNumber == number }) {
@@ -230,6 +239,8 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                                 members = api.getMembers()
                                 selectedMember = null
                                 searchQuery = ""
+                                name = ""
+                                number = ""
                             } catch (e: Exception) {
                                 resultMessage = when (e) {
                                     is HttpException -> {
@@ -314,6 +325,48 @@ fun AddMemberPage(navController: NavController, jwtToken: String) {
                     }
                 },
                 containerColor = Color(0xFF1F2E43)
+            )
+        }
+        if (validationDialogShown) {
+            AlertDialog(
+                onDismissRequest = { validationDialogShown = false },
+                confirmButton = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = { validationDialogShown = false },
+                            modifier = Modifier.width(130.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF5D7E99),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(30.dp)
+                        ) {
+                            Text("Ok")
+                        }
+                    }
+                },
+                title = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Validation Failed",
+                            color = Color.Red,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(validationMessage, color = Color.White, textAlign = TextAlign.Center)
+                    }
+                },
+                containerColor = Color(0xFF1F2E43),
+                shape = RoundedCornerShape(16.dp)
             )
         }
     }
