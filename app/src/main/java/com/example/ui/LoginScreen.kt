@@ -198,7 +198,7 @@ fun LoginScreen(
                             "Login",
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 color = textColor,
-                                fontWeight = FontWeight.Bold // ← ini bikin bold
+                                fontWeight = FontWeight.Bold
                             )
                         )
 
@@ -251,14 +251,16 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp)) // atas tombol
+                        Spacer(modifier = Modifier.height(20.dp))
+
                         TextButton(onClick = onForgotPasswordClick) {
                             Text(
                                 text = "Forgot Password?",
                                 style = MaterialTheme.typography.labelSmall.copy(color = textColor)
                             )
                         }
-                        Spacer(modifier = Modifier.height(20.dp)) // bawah tombol
+
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
                             onClick = { viewModel.login() },
@@ -282,7 +284,19 @@ fun LoginScreen(
                 }
             }
 
-            // --- ✅ AlertDialog dengan reset loginResult ---
+            // ⬇️ Footer UKDC
+            Text(
+                text = "© 2025 - UKDC | Universitas Katolik Darma Cendika",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.White.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp)
+            )
+
+            // AlertDialog jika login gagal
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = {
@@ -326,9 +340,10 @@ fun LoginScreen(
                             )
                         }
                     },
-                            containerColor = cardColor
+                    containerColor = cardColor
                 )
             }
         }
     }
 }
+

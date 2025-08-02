@@ -230,7 +230,7 @@ fun PersonalAdminScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(15.dp))
 
                     Text(
                         text = "Personal Admin",
